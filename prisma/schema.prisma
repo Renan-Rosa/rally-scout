@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                                  AUTH                                        ║
+// ╠══════════════════════════════════════════════════════════════════════════════╣
+// ║  Usuário do sistema - técnico/analista que cadastra times e faz scout        ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // hash com bcrypt
+
+  teams     Team[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                                  TEAM                                        ║
+// ╠══════════════════════════════════════════════════════════════════════════════╣
+// ║  Time do usuário - contém jogadores e partidas                               ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  players   Player[]
+  matches   Match[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                                 PLAYER                                       ║
+// ╠══════════════════════════════════════════════════════════════════════════════╣
+// ║  Jogador do time                                                             ║
+// ║  - isActive: permite "desativar" sem perder histórico de ações               ║
+// ║  - number: único por time (não pode ter 2 camisas #10)                       ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+model Player {
+  id        String   @id @default(cuid())
+  name      String
+  number    Int
+  position  Position
+  isActive  Boolean  @default(true)
+
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  actions   Action[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, number]) // número único por time
+  @@index([teamId])
+  @@index([teamId, isActive])
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                                 MATCH                                        ║
+// ╠══════════════════════════════════════════════════════════════════════════════╣
+// ║  Partida do time contra um adversário                                        ║
+// ║                                                                              ║
+// ║  PLACAR EM TEMPO REAL:                                                       ║
+// ║  - scoreHome/scoreAway: pontos do SET ATUAL (resetam a cada set)             ║
+// ║  - setsHome/setsAway: histórico de pontuação final de cada set               ║
+// ║                                                                              ║
+// ║  Por que guardar score separado das Actions?                                 ║
+// ║  → Performance: atualizar 1 int é mais rápido que COUNT(*) em milhares       ║
+// ║    de linhas toda vez que a tela do scout atualiza                           ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+model Match {
+  id           String      @id @default(cuid())
+
+  teamId       String
+  team         Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  opponent     String      // nome do adversário (simplificado pro MVP)
+  location     String?
+  date         DateTime    @default(now())
+  status       MatchStatus @default(SCHEDULED)
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PLACAR DO SET ATUAL (atualizado em tempo real durante scout)
+  // ═══════════════════════════════════════════════════════════════════
+  currentSet   Int         @default(1)  // 1 a 5
+  scoreHome    Int         @default(0)  // pontos do seu time no set atual
+  scoreAway    Int         @default(0)  // pontos do adversário no set atual
+
+  // ═══════════════════════════════════════════════════════════════════
+  // HISTÓRICO DE SETS FINALIZADOS
+  // Exemplo: time ganhou 3x1 → setsHome: [25, 23, 25, 25]
+  //                           → setsAway: [20, 25, 18, 22]
+  // ═══════════════════════════════════════════════════════════════════
+  setsHome     Int[]       @default([])
+  setsAway     Int[]       @default([])
+
+  actions      Action[]
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([teamId])
+  @@index([status])
+  @@index([teamId, status])
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                                 ACTION                                       ║
+// ╠══════════════════════════════════════════════════════════════════════════════╣
+// ║  Ação individual registrada durante o scout                                  ║
+// ║                                                                              ║
+// ║  JOGADOR OPCIONAL (playerId pode ser null):                                  ║
+// ║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+// ║  │ playerId  │ isOpponentPoint │ Significado                               │ ║
+// ║  ├───────────┼─────────────────┼───────────────────────────────────────────┤ ║
+// ║  │ "abc123"  │ false           │ Ação normal de um jogador do seu time     │ ║
+// ║  │ null      │ true            │ Ponto do ADVERSÁRIO (ataque, ace, etc)    │ ║
+// ║  │ null      │ false           │ Erro COLETIVO do seu time (rotação, etc)  │ ║
+// ║  └─────────────────────────────────────────────────────────────────────────┘ ║
+// ║                                                                              ║
+// ║  Por que não criar "jogador fantasma" do adversário?                         ║
+// ║  → Mais limpo: queries de stats ignoram playerId: null automaticamente       ║
+// ║  → Não polui a lista de jogadores do time                                    ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+model Action {
+  id              String       @id @default(cuid())
+
+  matchId         String
+  match           Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  // Jogador é OPCIONAL
+  playerId        String?
+  player          Player?      @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  type            ActionType
+  result          ActionResult
+  set             Int          @default(1)  // em qual set aconteceu (1-5)
+
+  // Quando playerId é null, isso diferencia:
+  // - true  = adversário fez ponto (ataque, ace, bloqueio, etc)
+  // - false = erro coletivo do seu time (rotação errada, comunicação, etc)
+  isOpponentPoint Boolean      @default(false)
+
+  createdAt       DateTime     @default(now())
+
+  @@index([matchId])
+  @@index([playerId])
+  @@index([matchId, set])
+  @@index([matchId, playerId])
+  @@index([matchId, type])
+  @@index([matchId, set, type]) // para stats por set e fundamento
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                                 ENUMS                                        ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// POSIÇÃO DO JOGADOR
+// Mantido em inglês no banco, UI exibe em português
+// ═══════════════════════════════════════════════════════════════════════════════
+enum Position {
+  SETTER      // Levantador (L)
+  OUTSIDE     // Ponteiro (P) - também chamado de Ponta ou OH (Outside Hitter)
+  OPPOSITE    // Oposto (O) - também chamado de OPP
+  MIDDLE      // Central (C) - também chamado de Middle Blocker
+  LIBERO      // Líbero (Li)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATUS DA PARTIDA
+// ═══════════════════════════════════════════════════════════════════════════════
+enum MatchStatus {
+  SCHEDULED   // Agendada - ainda não começou
+  LIVE        // Em andamento - scout ativo
+  FINISHED    // Finalizada - apenas consulta
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIPO DE AÇÃO / FUNDAMENTO
+// Os 6 fundamentos básicos do voleibol
+// ═══════════════════════════════════════════════════════════════════════════════
+enum ActionType {
+  SERVE       // Saque
+  RECEIVE     // Recepção / Passe
+  ATTACK      // Ataque
+  BLOCK       // Bloqueio
+  DIG         // Defesa
+  SET         // Levantamento
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RESULTADO DA AÇÃO
+// 
+// Mais semântico que usar números (0, 1, 2, 3, 4)
+// Facilita leitura do código: action.result === 'POINT' vs action.quality === 4
+//
+// MAPEAMENTO PARA TERMOS DO VÔLEI:
+// ┌───────────┬─────────────────────────────────────────────────────────────────┐
+// │ Resultado │ Exemplos práticos                                               │
+// ├───────────┼─────────────────────────────────────────────────────────────────┤
+// │ ERROR     │ Saque na rede, ataque pra fora, invasão, dois toques            │
+// │ NEGATIVE  │ Passe C (longe da rede), ataque defendido/bloqueado             │
+// │ NEUTRAL   │ Passe B (jogável), saque que não pressionou                     │
+// │ POSITIVE  │ Passe A (na mão do levantador), ataque que forçou erro          │
+// │ POINT     │ Ace, kill (ponto de ataque), stuff block (bloqueio ponto)       │
+// └───────────┴─────────────────────────────────────────────────────────────────┘
+// ═══════════════════════════════════════════════════════════════════════════════
+enum ActionResult {
+  ERROR       // Erro - ponto direto pro adversário
+  NEGATIVE    // Negativo - continuou, mas ruim (bola saiu do sistema)
+  NEUTRAL     // Neutro - continuou normal
+  POSITIVE    // Positivo - bom, facilitou o próximo fundamento
+  POINT       // Ponto - ponto direto (ace, kill, stuff)
+}
