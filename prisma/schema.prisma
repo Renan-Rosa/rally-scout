@@ -33,6 +33,7 @@ model User {
 
 model Team {
   id        String   @id @default(cuid())
+  type      TeamType
   name      String
 
   userId    String
@@ -234,4 +235,10 @@ enum ActionResult {
   NEUTRAL     // Neutro - continuou normal
   POSITIVE    // Positivo - bom, facilitou o próximo fundamento
   POINT       // Ponto - ponto direto (ace, kill, stuff)
+}
+
+enum TeamType {
+  MANS
+  WOMANS
+  MIXED
 }
