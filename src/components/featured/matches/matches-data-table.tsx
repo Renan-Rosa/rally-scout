@@ -9,10 +9,18 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Search } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
+import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -28,17 +36,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import type { MatchRow } from "./columns";
 
-interface PlayersDataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface MatchesDataTableProps<TValue> {
+  columns: ColumnDef<MatchRow, TValue>[];
+  data: MatchRow[];
 }
 
-export function PlayersDataTable<TData, TValue>({
+export function MatchesDataTable<TValue>({
   columns,
   data,
-}: PlayersDataTableProps<TData, TValue>) {
+}: MatchesDataTableProps<TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const table = useReactTable({
     data,
@@ -52,27 +63,57 @@ export function PlayersDataTable<TData, TValue>({
     },
   });
 
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    table.getColumn("date")?.setFilterValue(range);
+  };
+
   return (
     <div className='space-y-4'>
       {/* Filtros */}
       <div className='flex items-center gap-4'>
-        <div className='relative max-w-sm flex-1'>
-          <Search className='text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2' />
-          <Input
-            placeholder='Pesquisar pelo nome...'
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(e) =>
-              table.getColumn("name")?.setFilterValue(e.target.value)
-            }
-            className='pl-9'
-          />
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant='outline'
+              className={cn(
+                "w-64 justify-start text-left font-normal",
+                !dateRange?.from && "text-muted-foreground",
+              )}
+            >
+              <CalendarIcon className='mr-2 size-4' />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })}
+                    {" - "}
+                    {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
+                  </>
+                ) : (
+                  format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+                )
+              ) : (
+                "Filtrar por período"
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className='w-auto p-0' align='start'>
+            <Calendar
+              mode='range'
+              selected={dateRange}
+              onSelect={handleDateRangeChange}
+              numberOfMonths={2}
+              locale={ptBR}
+            />
+          </PopoverContent>
+        </Popover>
+
         <Select
           value={
-            (table.getColumn("isActive")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
           }
           onValueChange={(value) =>
-            table.getColumn("isActive")?.setFilterValue(value)
+            table.getColumn("status")?.setFilterValue(value)
           }
         >
           <SelectTrigger className='w-40'>
@@ -80,8 +121,10 @@ export function PlayersDataTable<TData, TValue>({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value='all'>Todos</SelectItem>
-            <SelectItem value='active'>Ativos</SelectItem>
-            <SelectItem value='inactive'>Inativos</SelectItem>
+            <SelectItem value='SCHEDULED'>Agendadas</SelectItem>
+            <SelectItem value='LIVE'>Ao Vivo</SelectItem>
+            <SelectItem value='FINISHED'>Finalizadas</SelectItem>
+            <SelectItem value='CANCELED'>Canceladas</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -125,7 +168,7 @@ export function PlayersDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  Nenhum atleta encontrado.
+                  Nenhuma partida encontrada.
                 </TableCell>
               </TableRow>
             )}
@@ -136,7 +179,7 @@ export function PlayersDataTable<TData, TValue>({
       {/* Paginação */}
       <div className='flex items-center justify-between'>
         <p className='text-muted-foreground text-sm'>
-          {table.getFilteredRowModel().rows.length} atleta(s)
+          {table.getFilteredRowModel().rows.length} partida(s)
         </p>
         <div className='flex items-center gap-2'>
           <Button

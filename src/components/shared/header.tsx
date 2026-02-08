@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { HeaderProfile, type User } from "@/components/shared/profile";
 import { Menu } from "./menu";
 import { ModeToggle } from "./mode-toggle";

@@ -164,6 +164,10 @@ model Action {
   // - false = erro coletivo do seu time (rotação errada, comunicação, etc)
   isOpponentPoint Boolean      @default(false)
 
+  rotation       String?   // Ex: "P1", "P6" (posição do levantador)
+  startZone      Int?      // 1-9 (Zona da quadra de onde partiu a ação)
+  endZone        Int?      // 1-9 (Zona da quadra onde a bola caiu/foi)
+
   createdAt       DateTime     @default(now())
 
   @@index([matchId])
@@ -197,6 +201,7 @@ enum MatchStatus {
   SCHEDULED   // Agendada - ainda não começou
   LIVE        // Em andamento - scout ativo
   FINISHED    // Finalizada - apenas consulta
+  CANCELED    // Cancelada - foi cancelada
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

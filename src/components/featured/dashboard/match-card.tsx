@@ -7,11 +7,14 @@ type Match = {
   id: string;
   opponent: string;
   date: Date;
-  status: "SCHEDULED" | "LIVE" | "FINISHED";
+  status: "SCHEDULED" | "LIVE" | "FINISHED" | "CANCELED";
   scoreHome?: number;
   scoreAway?: number;
   setsHome?: number[];
   setsAway?: number[];
+  team: {
+    name: string;
+  };
 };
 
 type MatchCardsProps = {
@@ -34,13 +37,15 @@ export function MatchCards({ nextMatch, lastMatch }: MatchCardsProps) {
           {nextMatch ? (
             <div className='space-y-3'>
               <div>
-                <p className='text-lg font-semibold'>vs {nextMatch.opponent}</p>
+                <p className='text-lg font-semibold'>
+                  {nextMatch.team.name} vs {nextMatch.opponent}
+                </p>
                 <p className='text-sm text-muted-foreground'>
                   {nextMatch.date.toLocaleDateString("pt-BR")}
                 </p>
               </div>
               <Button asChild className='w-full'>
-                <Link href={`/dashboard/matches/${nextMatch.id}/scout`}>
+                <Link href={`/dashboard/scout/${nextMatch.id}`}>
                   <Play className='mr-2 size-4' />
                   Iniciar Scout
                 </Link>

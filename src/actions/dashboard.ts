@@ -61,6 +61,9 @@ export async function getDashboardData() {
       status: "SCHEDULED",
       date: { gte: new Date() },
     },
+    include: {
+      team: true,
+    },
     orderBy: { date: "asc" },
   });
 
@@ -69,6 +72,9 @@ export async function getDashboardData() {
     where: {
       team: { userId: user.id },
       status: "FINISHED",
+    },
+    include: {
+      team: true,
     },
     orderBy: { date: "desc" },
   });

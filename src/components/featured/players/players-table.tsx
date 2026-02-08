@@ -1,6 +1,6 @@
 "use client";
 
-import { type PlayerRow, columns } from "./columns";
+import { columns, type PlayerRow } from "./columns";
 import { PlayersDataTable } from "./players-data-table";
 
 interface PlayersTableProps {

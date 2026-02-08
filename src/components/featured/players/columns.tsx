@@ -19,6 +19,14 @@ export type PlayerRow = {
   };
 };
 
+const positionColors: Record<Position, string> = {
+  SETTER: "bg-purple-600 border-purple-700 text-white",
+  OUTSIDE: "bg-blue-600 border-blue-700 text-white",
+  OPPOSITE: "bg-orange-600 border-orange-700 text-white",
+  MIDDLE: "bg-teal-600 border-teal-700 text-white",
+  LIBERO: "bg-yellow-600 border-yellow-700 text-white",
+};
+
 export const columns: ColumnDef<PlayerRow>[] = [
   {
     id: "avatar",
@@ -43,7 +51,9 @@ export const columns: ColumnDef<PlayerRow>[] = [
     accessorKey: "position",
     header: "Posição",
     cell: ({ row }) => (
-      <Badge variant='outline'>{POSITION_LABELS[row.original.position]}</Badge>
+      <Badge className={positionColors[row.original.position]}>
+        {POSITION_LABELS[row.original.position]}
+      </Badge>
     ),
   },
   {
@@ -51,9 +61,13 @@ export const columns: ColumnDef<PlayerRow>[] = [
     header: "Status",
     cell: ({ row }) =>
       row.original.isActive ? (
-        <Badge variant='default'>Ativo</Badge>
+        <Badge className='bg-green-600 border-green-700 text-white'>
+          Ativo
+        </Badge>
       ) : (
-        <Badge variant='secondary'>Inativo</Badge>
+        <Badge className='bg-slate-500 border-slate-600 text-white'>
+          Inativo
+        </Badge>
       ),
     filterFn: (row, _columnId, filterValue) => {
       if (filterValue === "all") return true;
