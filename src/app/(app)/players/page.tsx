@@ -1,16 +1,16 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { getTeams } from "@/actions/teams";
-import { TeamsTable } from "@/components/featured/teams/teams-table";
+import { getPlayers } from "@/actions/players";
+import { PlayersTable } from "@/components/featured/players/players-table";
 import { Button } from "@/components/ui/button";
 
-export default async function TeamsPage() {
-  const result = await getTeams();
+export default async function PlayersPage() {
+  const result = await getPlayers();
 
   if (!result.success || !result.data) {
     return (
       <div className='p-4'>
-        <p className='text-destructive'>Erro ao carregar times.</p>
+        <p className='text-destructive'>Erro ao carregar atletas.</p>
       </div>
     );
   }
@@ -19,20 +19,20 @@ export default async function TeamsPage() {
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold'>Times</h1>
+          <h1 className='text-2xl font-bold'>Atletas</h1>
           <p className='text-muted-foreground mt-1'>
-            Gerencie os seus times cadastrados.
+            Gerencie os atletas dos seus times.
           </p>
         </div>
         <Button asChild>
-          <Link href='/teams/new'>
+          <Link href='/players/new'>
             <Plus className='mr-2 size-4' />
-            Adicionar time
+            Adicionar atleta
           </Link>
         </Button>
       </div>
 
-      <TeamsTable teams={result.data} />
+      <PlayersTable players={result.data} />
     </div>
   );
 }
