@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { createMatch, deleteMatch, updateMatch } from "@/actions/matches";
+import {
+  cancelMatch,
+  createMatch,
+  deleteMatch,
+  startMatch,
+  updateMatch,
+} from "@/actions/matches";
 import type {
   CreateMatchInput,
   DeleteMatchInput,
@@ -45,10 +51,33 @@ export function useMatches() {
     return result;
   };
 
+  const handleStart = async (id: string) => {
+    const result = await startMatch(id);
+    if (result.success) {
+      startTransition(() => {
+        router.push(`/matches/${id}/scout`);
+        router.refresh();
+      });
+    }
+    return result;
+  };
+
+  const handleCancel = async (id: string) => {
+    const result = await cancelMatch(id);
+    if (result.success) {
+      startTransition(() => {
+        router.refresh();
+      });
+    }
+    return result;
+  };
+
   return {
     createMatch: handleCreate,
     updateMatch: handleUpdate,
     deleteMatch: handleDelete,
+    startMatch: handleStart,
+    cancelMatch: handleCancel,
     isPending,
   };
 }

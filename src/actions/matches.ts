@@ -24,15 +24,21 @@ export type ActionResponse<T = void> = {
 // ══════════════════════════════════════════════════════════════
 // READ (Lista)
 // ══════════════════════════════════════════════════════════════
-export async function getMatches() {
+export async function getMatches(teamId?: string) {
   try {
     const user = await requireAuth();
 
     const matches = await prisma.match.findMany({
-      where: { team: { userId: user.id } },
+      where: {
+        team: { userId: user.id },
+        ...(teamId && { teamId }),
+      },
       include: {
         team: {
           select: { id: true, name: true },
+        },
+        _count: {
+          select: { actions: true },
         },
       },
       orderBy: { date: "desc" },
@@ -42,6 +48,50 @@ export async function getMatches() {
   } catch (error) {
     console.error("[GET_MATCHES]", error);
     return { success: false, error: "Erro ao buscar partidas" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// READ (Único - com jogadores para o scout)
+// ══════════════════════════════════════════════════════════════
+export async function getMatch(id: string) {
+  try {
+    const user = await requireAuth();
+
+    const match = await prisma.match.findFirst({
+      where: {
+        id,
+        team: { userId: user.id },
+      },
+      include: {
+        team: {
+          include: {
+            players: {
+              where: { isActive: true },
+              orderBy: { number: "asc" },
+            },
+          },
+        },
+        actions: {
+          orderBy: { createdAt: "desc" },
+          take: 50,
+          include: {
+            player: {
+              select: { id: true, name: true, number: true, position: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!match) {
+      return { success: false, error: "Partida não encontrada" };
+    }
+
+    return { success: true, data: match };
+  } catch (error) {
+    console.error("[GET_MATCH]", error);
+    return { success: false, error: "Erro ao buscar partida" };
   }
 }
 
@@ -77,7 +127,8 @@ export async function createMatch(
       },
     });
 
-    revalidatePath("/matches");
+    revalidatePath("/dashboard/matches");
+    revalidatePath("/dashboard");
 
     return { success: true, data: { id: match.id } };
   } catch (error) {
@@ -119,7 +170,8 @@ export async function updateMatch(
       },
     });
 
-    revalidatePath("/matches");
+    revalidatePath("/dashboard/matches");
+    revalidatePath(`/dashboard/matches/${parsed.data.id}`);
 
     return { success: true };
   } catch (error) {
@@ -155,11 +207,160 @@ export async function deleteMatch(
       where: { id: parsed.data.id },
     });
 
-    revalidatePath("/matches");
+    revalidatePath("/dashboard/matches");
+    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
     console.error("[DELETE_MATCH]", error);
     return { success: false, error: "Erro ao deletar partida" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// READ (Partida ao vivo)
+// ══════════════════════════════════════════════════════════════
+export async function getLiveMatch() {
+  try {
+    const user = await requireAuth();
+
+    const match = await prisma.match.findFirst({
+      where: {
+        team: { userId: user.id },
+        status: "LIVE",
+      },
+      select: { id: true, opponent: true },
+    });
+
+    return { success: true, data: match };
+  } catch (error) {
+    console.error("[GET_LIVE_MATCH]", error);
+    return { success: false, error: "Erro ao buscar partida ao vivo" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// INICIAR SCOUT (SCHEDULED → LIVE)
+// ══════════════════════════════════════════════════════════════
+export async function startMatch(id: string): Promise<ActionResponse> {
+  try {
+    const user = await requireAuth();
+
+    // Valida se já existe uma partida LIVE
+    const liveMatch = await prisma.match.findFirst({
+      where: { team: { userId: user.id }, status: "LIVE" },
+      select: { id: true },
+    });
+
+    if (liveMatch) {
+      return { success: false, error: "Já existe uma partida em andamento" };
+    }
+
+    const match = await prisma.match.findFirst({
+      where: { id, team: { userId: user.id } },
+    });
+
+    if (!match) {
+      return { success: false, error: "Partida não encontrada" };
+    }
+
+    if (match.status !== "SCHEDULED") {
+      return { success: false, error: "Partida já foi iniciada ou finalizada" };
+    }
+
+    await prisma.match.update({
+      where: { id },
+      data: { status: "LIVE" },
+    });
+
+    revalidatePath(`/dashboard/matches/${id}`);
+    revalidatePath("/dashboard/matches");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("[START_MATCH]", error);
+    return { success: false, error: "Erro ao iniciar partida" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// FINALIZAR PARTIDA (LIVE → FINISHED)
+// ══════════════════════════════════════════════════════════════
+export async function finishMatch(id: string): Promise<ActionResponse> {
+  try {
+    const user = await requireAuth();
+
+    const match = await prisma.match.findFirst({
+      where: { id, team: { userId: user.id } },
+    });
+
+    if (!match) {
+      return { success: false, error: "Partida não encontrada" };
+    }
+
+    if (match.status !== "LIVE") {
+      return { success: false, error: "Partida não está em andamento" };
+    }
+
+    // Salva o set atual no histórico antes de finalizar
+    const updatedSetsHome = [...match.setsHome, match.scoreHome];
+    const updatedSetsAway = [...match.setsAway, match.scoreAway];
+
+    await prisma.match.update({
+      where: { id },
+      data: {
+        status: "FINISHED",
+        setsHome: updatedSetsHome,
+        setsAway: updatedSetsAway,
+      },
+    });
+
+    revalidatePath(`/dashboard/matches/${id}`);
+    revalidatePath("/dashboard/matches");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("[FINISH_MATCH]", error);
+    return { success: false, error: "Erro ao finalizar partida" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// CANCELAR PARTIDA
+// ══════════════════════════════════════════════════════════════
+export async function cancelMatch(id: string): Promise<ActionResponse> {
+  try {
+    const user = await requireAuth();
+
+    const match = await prisma.match.findFirst({
+      where: { id, team: { userId: user.id } },
+    });
+
+    if (!match) {
+      return { success: false, error: "Partida não encontrada" };
+    }
+
+    if (match.status === "FINISHED") {
+      return {
+        success: false,
+        error: "Partida já finalizada não pode ser cancelada",
+      };
+    }
+
+    await prisma.match.update({
+      where: { id },
+      data: { status: "CANCELED" },
+    });
+
+    revalidatePath(`/dashboard/matches/${id}`);
+    revalidatePath("/dashboard/matches");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("[CANCEL_MATCH]", error);
+    return { success: false, error: "Erro ao cancelar partida" };
   }
 }

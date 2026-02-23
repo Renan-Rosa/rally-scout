@@ -2,7 +2,6 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChartNoAxesColumnIncreasing, CircleX, Play } from "lucide-react";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,17 +43,7 @@ function formatScore(setsHome: number[], setsAway: number[]): string {
 }
 
 function MatchOptionsCell({ match }: { match: MatchRow }) {
-  const { updateMatch, isPending } = useMatches();
-
-  const handleCancel = async () => {
-    await updateMatch({
-      id: match.id,
-      opponent: match.opponent,
-      location: match.location ?? undefined,
-      date: match.date,
-      status: "CANCELED",
-    });
-  };
+  const { startMatch, cancelMatch, isPending } = useMatches();
 
   return (
     <TooltipProvider>
@@ -64,16 +53,10 @@ function MatchOptionsCell({ match }: { match: MatchRow }) {
             <Button
               variant='outline'
               size='icon'
-              disabled={match.status !== "SCHEDULED"}
-              asChild={match.status === "SCHEDULED"}
+              disabled={match.status !== "SCHEDULED" || isPending}
+              onClick={() => startMatch(match.id)}
             >
-              {match.status === "SCHEDULED" ? (
-                <Link href='/scout/new'>
-                  <Play className='size-4' />
-                </Link>
-              ) : (
-                <Play className='size-4' />
-              )}
+              <Play className='size-4' />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Iniciar Scout</TooltipContent>
@@ -88,9 +71,9 @@ function MatchOptionsCell({ match }: { match: MatchRow }) {
               asChild={match.status === "FINISHED"}
             >
               {match.status === "FINISHED" ? (
-                <Link href={`/stats/matches/${match.id}`}>
+                <a href={`/stats/matches/${match.id}`}>
                   <ChartNoAxesColumnIncreasing className='size-4' />
-                </Link>
+                </a>
               ) : (
                 <ChartNoAxesColumnIncreasing className='size-4' />
               )}
@@ -104,8 +87,12 @@ function MatchOptionsCell({ match }: { match: MatchRow }) {
             <Button
               variant='outline'
               size='icon'
-              disabled={match.status === "CANCELED" || isPending}
-              onClick={handleCancel}
+              disabled={
+                match.status === "CANCELED" ||
+                match.status === "FINISHED" ||
+                isPending
+              }
+              onClick={() => cancelMatch(match.id)}
             >
               <CircleX className='size-4' />
             </Button>
