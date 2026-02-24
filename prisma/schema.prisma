@@ -66,7 +66,8 @@ model Player {
   teamId    String
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  actions   Action[]
+  actions      Action[]
+  lineupSlots  MatchLineup[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,6 +118,7 @@ model Match {
   setsAway     Int[]       @default([])
 
   actions      Action[]
+  lineup       MatchLineup[]
 
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -176,6 +178,32 @@ model Action {
   @@index([matchId, playerId])
   @@index([matchId, type])
   @@index([matchId, set, type]) // para stats por set e fundamento
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                              MATCH LINEUP                                    ║
+// ╠══════════════════════════════════════════════════════════════════════════════╣
+// ║  Escalação da partida — qual jogador está em qual posição (slot 1-6)         ║
+// ║  Persistida ao confirmar a escalação no scout                                ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+model MatchLineup {
+  id        String   @id @default(cuid())
+
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  slot      Int      // 1-6 (posição na quadra)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchId, slot])    // um jogador por slot
+  @@unique([matchId, playerId]) // um slot por jogador
+  @@index([matchId])
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════════╗

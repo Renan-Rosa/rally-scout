@@ -20,9 +20,9 @@ export default async function DashboardLayout({
   const liveMatch = liveMatchResult.success ? liveMatchResult.data : null;
 
   return (
-    <div className='min-h-screen flex flex-col gap-4'>
+    <div className='h-dvh flex flex-col'>
       <Header user={user} />
-      <main className='flex-1 p-6'>{children}</main>
+      <main className='flex-1 min-h-0 overflow-auto p-4 lg:p-6'>{children}</main>
 
       {liveMatch && (
         <Link

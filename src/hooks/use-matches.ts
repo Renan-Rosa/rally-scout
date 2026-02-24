@@ -55,7 +55,7 @@ export function useMatches() {
     const result = await startMatch(id);
     if (result.success) {
       startTransition(() => {
-        router.push(`/matches/${id}/scout`);
+        router.push(`/scout/${id}`);
         router.refresh();
       });
     }

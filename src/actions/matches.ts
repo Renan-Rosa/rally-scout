@@ -72,9 +72,16 @@ export async function getMatch(id: string) {
             },
           },
         },
+        lineup: {
+          include: {
+            player: {
+              select: { id: true, name: true, number: true, position: true },
+            },
+          },
+          orderBy: { slot: "asc" },
+        },
         actions: {
           orderBy: { createdAt: "desc" },
-          take: 50,
           include: {
             player: {
               select: { id: true, name: true, number: true, position: true },
