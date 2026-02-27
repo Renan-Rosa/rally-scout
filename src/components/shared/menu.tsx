@@ -1,17 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import {
-  ChartNoAxesColumnIncreasing,
   HelpCircleIcon,
-  History,
-  Mail,
-  Monitor,
   SettingsIcon,
   Shield,
   User2,
   Volleyball,
 } from "lucide-react";
+import Link from "next/link";
 import {
   Menubar,
   MenubarContent,
@@ -48,31 +44,6 @@ export function Menu() {
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
-        <MenubarTrigger>Scout</MenubarTrigger>
-        <MenubarContent>
-          <MenubarGroup>
-            <MenubarItem asChild>
-              <Link href='/scout/new'>
-                <Monitor />
-                Novo Scout
-              </Link>
-            </MenubarItem>
-            <MenubarItem asChild>
-              <Link href='/scout'>
-                <History />
-                Histórico de Scouts
-              </Link>
-            </MenubarItem>
-            <MenubarItem asChild>
-              <Link href='/stats'>
-                <ChartNoAxesColumnIncreasing />
-                Estatísticas
-              </Link>
-            </MenubarItem>
-          </MenubarGroup>
-        </MenubarContent>
-      </MenubarMenu>
-      <MenubarMenu>
         <MenubarTrigger>Sistema</MenubarTrigger>
         <MenubarContent>
           <MenubarGroup>
@@ -80,12 +51,6 @@ export function Menu() {
               <Link href='/settings'>
                 <SettingsIcon />
                 Configurações
-              </Link>
-            </MenubarItem>
-            <MenubarItem asChild>
-              <Link href='/contact'>
-                <Mail />
-                Contato
               </Link>
             </MenubarItem>
             <MenubarItem asChild>

@@ -2,11 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link"; // Use o Link do Next.js para navegação interna
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { type SignInInput, signInSchema } from "@/actions/schemas/auth";
+import { type SignUpInput, signUpSchema } from "@/actions/schemas/auth";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -19,26 +18,27 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
-export function SignInForm({
+export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { signIn, isPending } = useAuth();
+  const { signUp, isPending } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<SignInInput>({
-    resolver: zodResolver(signInSchema),
+  const form = useForm<SignUpInput>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
     },
   });
 
-  const onSubmit = async (data: SignInInput) => {
+  const onSubmit = async (data: SignUpInput) => {
     setError(null);
-    const result = await signIn(data);
+    const result = await signUp(data);
     if (!result.success) {
-      setError(result.error ?? "Erro ao fazer login");
+      setError(result.error ?? "Erro ao criar conta");
     }
   };
 
@@ -47,11 +47,11 @@ export function SignInForm({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className='flex flex-col items-center gap-2 text-center'>
-            <h1 className='text-xl font-bold'>Bem vindo ao Rally</h1>
+            <h1 className='text-xl font-bold'>Crie sua conta no Rally</h1>
             <FieldDescription>
-              Não tem conta ainda?{" "}
-              <Link href='/sign-up' className='underline underline-offset-4'>
-                Crie sua conta
+              Já tem conta?{" "}
+              <Link href='/sign-in' className='underline underline-offset-4'>
+                Faça login
               </Link>
             </FieldDescription>
           </div>
@@ -61,6 +61,20 @@ export function SignInForm({
               {error}
             </div>
           )}
+
+          <Field>
+            <FieldLabel htmlFor='name'>Nome</FieldLabel>
+            <Input
+              id='name'
+              type='text'
+              placeholder='Seu nome completo'
+              disabled={isPending}
+              {...form.register("name")}
+            />
+            {form.formState.errors.name && (
+              <FieldError>{form.formState.errors.name.message}</FieldError>
+            )}
+          </Field>
 
           <Field>
             <FieldLabel htmlFor='email'>Email</FieldLabel>
@@ -81,7 +95,7 @@ export function SignInForm({
             <Input
               id='password'
               type='password'
-              placeholder='Digite sua senha'
+              placeholder='Mínimo 6 caracteres'
               disabled={isPending}
               {...form.register("password")}
             />
@@ -94,18 +108,17 @@ export function SignInForm({
             {isPending ? (
               <>
                 <Loader2 className='mr-2 size-4 animate-spin' />
-                Entrando...
+                Criando conta...
               </>
             ) : (
-              "Entrar"
+              "Criar conta"
             )}
           </Button>
         </FieldGroup>
       </form>
 
-      {/* CORRIGIDO: Texto limpo e sem semicolons perdidos */}
       <p className='px-6 text-center text-xs text-muted-foreground'>
-        Ao acessar, você está concordando com os nossos{" "}
+        Ao criar sua conta, você está concordando com os nossos{" "}
         <Link href='/terms' className='underline underline-offset-4'>
           Termos de serviço
         </Link>{" "}
