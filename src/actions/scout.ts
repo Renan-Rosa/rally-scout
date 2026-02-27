@@ -267,6 +267,51 @@ export async function rotateLineup(
 }
 
 // ══════════════════════════════════════════════════════════════
+// OPPONENT ERROR (erro do adversário = ponto pro time da casa)
+// ══════════════════════════════════════════════════════════════
+export async function opponentError(
+  matchId: string,
+): Promise<ActionResponse> {
+  try {
+    const user = await requireAuth();
+
+    const match = await prisma.match.findFirst({
+      where: { id: matchId, team: { userId: user.id } },
+      select: { id: true, currentSet: true },
+    });
+
+    if (!match) {
+      return { success: false, error: "Partida não encontrada" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.action.create({
+        data: {
+          matchId,
+          playerId: null,
+          type: "ATTACK",
+          result: "ERROR",
+          set: match.currentSet,
+          isOpponentPoint: true,
+        },
+      });
+
+      await tx.match.update({
+        where: { id: matchId },
+        data: { scoreHome: { increment: 1 } },
+      });
+    });
+
+    revalidatePath(`/scout/${matchId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("[OPPONENT_ERROR]", error);
+    return { success: false, error: "Erro ao registrar erro do adversário" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 // START NEW SET (salva placar do set atual e reseta)
 // ══════════════════════════════════════════════════════════════
 export async function startNewSet(

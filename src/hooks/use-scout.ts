@@ -6,8 +6,8 @@ import { finishMatch as finishMatchAction } from "@/actions/matches";
 import type { CreateActionInput } from "@/actions/schemas/scout";
 import {
   createAction,
-  finishSet as finishSetAction,
   opponentError as opponentErrorAction,
+  startNewSet as finishSetAction,
   undoLastAction,
 } from "@/actions/scout";
 import type {
@@ -133,7 +133,7 @@ export function useScout(initialMatch: MatchWithRelations) {
     if (wasAwayPoint) setScoreAway((prev) => Math.max(0, prev - 1));
 
     startTransition(async () => {
-      const result = await undoLastAction(initialMatch.id);
+      const result = await undoLastAction(initialMatch.id, lastAction.id);
       if (!result.success) {
         // Reverte
         setActions((prev) => [lastAction, ...prev]);
