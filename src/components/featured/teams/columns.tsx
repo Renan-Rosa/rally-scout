@@ -3,7 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import type { TeamType } from "@/generated/prisma";
+import type { TeamType } from "@/generated/prisma/client";
 import { TEAM_TYPE_LABELS } from "@/lib/volleyball";
 import { getInitials } from "@/utils/get-initials";
 
