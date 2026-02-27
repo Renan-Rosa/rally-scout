@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Position } from "@/generated/prisma/enums";
 import { POSITION_LABELS } from "@/lib/volleyball";
 import { getInitials } from "@/utils/get-initials";
+import { PlayerDeleteButton } from "./player-delete-button";
 
 export type PlayerRow = {
   id: string;
@@ -19,12 +20,20 @@ export type PlayerRow = {
   };
 };
 
-const positionColors: Record<Position, string> = {
+export const positionColors: Record<Position, string> = {
   SETTER: "bg-purple-600 border-purple-700 text-white",
   OUTSIDE: "bg-blue-600 border-blue-700 text-white",
   OPPOSITE: "bg-orange-600 border-orange-700 text-white",
   MIDDLE: "bg-teal-600 border-teal-700 text-white",
   LIBERO: "bg-yellow-600 border-yellow-700 text-white",
+};
+
+export const positionDotColors: Record<Position, string> = {
+  SETTER: "bg-purple-500",
+  OUTSIDE: "bg-blue-500",
+  OPPOSITE: "bg-orange-500",
+  MIDDLE: "bg-teal-500",
+  LIBERO: "bg-yellow-500",
 };
 
 export const columns: ColumnDef<PlayerRow>[] = [
@@ -55,6 +64,10 @@ export const columns: ColumnDef<PlayerRow>[] = [
         {POSITION_LABELS[row.original.position]}
       </Badge>
     ),
+    filterFn: (row, _columnId, filterValue) => {
+      if (!filterValue || filterValue === "all") return true;
+      return row.original.position === filterValue;
+    },
   },
   {
     accessorKey: "isActive",
@@ -80,5 +93,16 @@ export const columns: ColumnDef<PlayerRow>[] = [
     accessorKey: "team.name",
     header: "Time",
     cell: ({ row }) => row.original.team.name,
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => (
+      <PlayerDeleteButton
+        playerId={row.original.id}
+        playerName={row.original.name}
+      />
+    ),
+    enableSorting: false,
   },
 ];

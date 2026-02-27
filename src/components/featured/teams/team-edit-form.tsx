@@ -5,8 +5,8 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-  type CreateTeamInput,
-  createTeamSchema,
+  type UpdateTeamInput,
+  updateTeamSchema,
 } from "@/actions/schemas/teams";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,26 +25,40 @@ import {
 } from "@/components/ui/select";
 import { useTeams } from "@/hooks/use-teams";
 import { TEAM_TYPE_LABELS } from "@/lib/volleyball";
+import type { TeamType } from "@/generated/prisma/enums";
 import { TeamLogoPicker } from "./team-logo-picker";
 
-export function TeamForm() {
-  const { createTeam, isPending } = useTeams();
+interface TeamEditFormProps {
+  team: {
+    id: string;
+    name: string;
+    type: TeamType;
+    logoUrl?: string | null;
+  };
+  onSuccess?: () => void;
+}
+
+export function TeamEditForm({ team, onSuccess }: TeamEditFormProps) {
+  const { updateTeam, isPending } = useTeams();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<CreateTeamInput>({
-    resolver: zodResolver(createTeamSchema),
+  const form = useForm<UpdateTeamInput>({
+    resolver: zodResolver(updateTeamSchema),
     defaultValues: {
-      name: "",
-      type: undefined,
-      logoUrl: undefined,
+      id: team.id,
+      name: team.name,
+      type: team.type,
+      logoUrl: team.logoUrl ?? undefined,
     },
   });
 
-  const onSubmit = async (data: CreateTeamInput) => {
+  const onSubmit = async (data: UpdateTeamInput) => {
     setError(null);
-    const result = await createTeam(data);
+    const result = await updateTeam(data);
     if (!result.success) {
-      setError(result.error ?? "Erro ao criar time");
+      setError(result.error ?? "Erro ao atualizar time");
+    } else {
+      onSuccess?.();
     }
   };
 
@@ -121,7 +135,7 @@ export function TeamForm() {
               Salvando...
             </>
           ) : (
-            "Salvar"
+            "Salvar alterações"
           )}
         </Button>
       </FieldGroup>

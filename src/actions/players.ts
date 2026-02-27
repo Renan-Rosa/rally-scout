@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import type { ActionResult, ActionType } from "@/generated/prisma/enums";
 import {
   type CreatePlayerInput,
   createPlayerSchema,
@@ -19,6 +20,23 @@ export type ActionResponse<T = void> = {
   success: boolean;
   data?: T;
   error?: string;
+};
+
+// ══════════════════════════════════════════════════════════════
+// TYPES
+// ══════════════════════════════════════════════════════════════
+export type PlayerStatsByType = {
+  type: ActionType;
+  label: string;
+  total: number;
+  score: number; // 0-100 (weighted average)
+  results: Partial<Record<ActionResult, number>>;
+};
+
+export type PlayerStats = {
+  totalActions: number;
+  totalMatches: number;
+  byType: PlayerStatsByType[];
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -125,6 +143,114 @@ export async function updatePlayer(
   } catch (error) {
     console.error("[UPDATE_PLAYER]", error);
     return { success: false, error: "Erro ao atualizar atleta" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// READ (Único)
+// ══════════════════════════════════════════════════════════════
+export async function getPlayer(id: string) {
+  try {
+    const user = await requireAuth();
+
+    const player = await prisma.player.findFirst({
+      where: { id, team: { userId: user.id } },
+      include: {
+        team: { select: { id: true, name: true } },
+      },
+    });
+
+    if (!player) return { success: false, error: "Atleta não encontrado" };
+
+    return { success: true, data: player };
+  } catch (error) {
+    console.error("[GET_PLAYER]", error);
+    return { success: false, error: "Erro ao buscar atleta" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// READ (Stats)
+// ══════════════════════════════════════════════════════════════
+const RESULT_WEIGHTS: Record<ActionResult, number> = {
+  ERROR: 0,
+  NEGATIVE: 25,
+  NEUTRAL: 50,
+  POSITIVE: 75,
+  POINT: 100,
+};
+
+const ACTION_TYPE_LABELS: Record<ActionType, string> = {
+  SERVE: "Saque",
+  RECEIVE: "Recepção",
+  ATTACK: "Ataque",
+  BLOCK: "Bloqueio",
+  DIG: "Defesa",
+  SET: "Levantamento",
+};
+
+export async function getPlayerStats(
+  playerId: string,
+): Promise<ActionResponse<PlayerStats>> {
+  try {
+    const user = await requireAuth();
+
+    const player = await prisma.player.findFirst({
+      where: { id: playerId, team: { userId: user.id } },
+    });
+
+    if (!player) return { success: false, error: "Atleta não encontrado" };
+
+    const [grouped, distinctMatches] = await Promise.all([
+      prisma.action.groupBy({
+        by: ["type", "result"],
+        where: { playerId },
+        _count: { id: true },
+      }),
+      prisma.action.findMany({
+        where: { playerId },
+        select: { matchId: true },
+        distinct: ["matchId"],
+      }),
+    ]);
+
+    const typeMap: Record<string, Record<string, number>> = {};
+    for (const row of grouped) {
+      if (!typeMap[row.type]) typeMap[row.type] = {};
+      typeMap[row.type][row.result] = row._count.id;
+    }
+
+    const byType: PlayerStatsByType[] = Object.entries(typeMap).map(
+      ([type, results]) => {
+        const total = Object.values(results).reduce((a, b) => a + b, 0);
+        let weightedSum = 0;
+        for (const [result, count] of Object.entries(results)) {
+          weightedSum += (RESULT_WEIGHTS[result as ActionResult] ?? 50) * count;
+        }
+        const score = total > 0 ? Math.round(weightedSum / total) : 0;
+        return {
+          type: type as ActionType,
+          label: ACTION_TYPE_LABELS[type as ActionType] ?? type,
+          total,
+          score,
+          results: results as Partial<Record<ActionResult, number>>,
+        };
+      },
+    );
+
+    const totalActions = byType.reduce((a, b) => a + b.total, 0);
+
+    return {
+      success: true,
+      data: {
+        totalActions,
+        totalMatches: distinctMatches.length,
+        byType,
+      },
+    };
+  } catch (error) {
+    console.error("[GET_PLAYER_STATS]", error);
+    return { success: false, error: "Erro ao buscar estatísticas" };
   }
 }
 

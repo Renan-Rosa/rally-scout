@@ -22,13 +22,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -108,25 +101,6 @@ export function MatchesDataTable<TValue>({
           </PopoverContent>
         </Popover>
 
-        <Select
-          value={
-            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table.getColumn("status")?.setFilterValue(value)
-          }
-        >
-          <SelectTrigger className='w-40'>
-            <SelectValue placeholder='Status' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>Todos</SelectItem>
-            <SelectItem value='SCHEDULED'>Agendadas</SelectItem>
-            <SelectItem value='LIVE'>Ao Vivo</SelectItem>
-            <SelectItem value='FINISHED'>Finalizadas</SelectItem>
-            <SelectItem value='CANCELED'>Canceladas</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Tabela */}

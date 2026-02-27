@@ -1,9 +1,11 @@
 "use client";
 
 import { ArrowRightLeft, Loader2, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   createAction,
+  finishMatch,
   rotateLineup,
   saveLineup,
   startNewSet,
@@ -111,6 +113,16 @@ export function VolleyballCourt({
   const [localActions, setLocalActions] =
     useState<TimelineAction[]>(initialActions);
   const [viewingSet, setViewingSet] = useState(initialCurrentSet);
+
+  // ── Finalizar partida ─────────────────────────────────────────
+  const router = useRouter();
+
+  const handleFinish = async () => {
+    const res = await finishMatch(matchId);
+    if (res.success) {
+      router.push("/matches");
+    }
+  };
 
   // ── Substituição / Rotação ────────────────────────────────────
   const [substitutionOpen, setSubstitutionOpen] = useState(false);
@@ -332,6 +344,7 @@ export function VolleyballCourt({
                 hasLastAction={lastActionId !== null}
                 onUndo={handleUndo}
                 onNewSet={handleNewSet}
+                onFinish={handleFinish}
               />
             </div>
 

@@ -79,13 +79,49 @@ export async function getDashboardData() {
     orderBy: { date: "desc" },
   });
 
-  // Highlights
-  const highlights: {
-    type: "positive" | "negative" | "neutral";
-    label: string;
-    value: string;
-    detail?: string;
-  }[] = [];
+  // Top jogadores por eficiência (partidas finalizadas)
+  const RESULT_WEIGHTS: Record<string, number> = {
+    ERROR: 0, NEGATIVE: 25, NEUTRAL: 50, POSITIVE: 75, POINT: 100,
+  };
+
+  const playersWithActions = await prisma.player.findMany({
+    where: { team: { userId: user.id }, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      number: true,
+      position: true,
+      team: { select: { name: true } },
+      actions: {
+        where: { match: { status: "FINISHED", team: { userId: user.id } } },
+        select: { result: true },
+      },
+    },
+  });
+
+  const topPerformers = playersWithActions
+    .filter((p) => p.actions.length >= 3)
+    .map((p) => {
+      const total = p.actions.length;
+      const weightedSum = p.actions.reduce(
+        (sum, a) => sum + (RESULT_WEIGHTS[a.result] ?? 50),
+        0,
+      );
+      const efficiency = Math.round(weightedSum / total);
+      const points = p.actions.filter((a) => a.result === "POINT").length;
+      return {
+        id: p.id,
+        name: p.name,
+        number: p.number,
+        position: p.position,
+        teamName: p.team.name,
+        totalActions: total,
+        points,
+        efficiency,
+      };
+    })
+    .sort((a, b) => b.efficiency - a.efficiency)
+    .slice(0, 5);
 
   return {
     stats: {
@@ -94,10 +130,10 @@ export async function getDashboardData() {
       matches: matchesCount,
       wins,
       losses,
-      winRate, // ← novo campo
+      winRate,
     },
     nextMatch,
     lastMatch,
-    highlights,
+    topPerformers,
   };
 }

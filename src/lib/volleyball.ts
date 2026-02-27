@@ -52,6 +52,10 @@ export const ACTION_RESULT_LABELS: Record<ActionResult, string> = {
   POINT: "Ponto",
 };
 
+export const TEAM_LOGOS: { name: string; url: string }[] = [
+  { name: "FKVB", url: "/team_logos/fkvb.png" },
+];
+
 export const VALID_RESULTS_BY_ACTION: Record<ActionType, ActionResult[]> = {
   SERVE: ["ERROR", "NEGATIVE", "NEUTRAL", "POSITIVE", "POINT"],
   RECEIVE: ["ERROR", "NEGATIVE", "NEUTRAL", "POSITIVE"],

@@ -284,10 +284,6 @@ export async function startNewSet(
       return { success: false, error: "Partida não encontrada" };
     }
 
-    if (match.status !== "LIVE") {
-      return { success: false, error: "Partida não está ao vivo" };
-    }
-
     if (match.currentSet >= 5) {
       return { success: false, error: "Número máximo de sets (5) atingido" };
     }
@@ -313,5 +309,46 @@ export async function startNewSet(
   } catch (error) {
     console.error("[START_NEW_SET]", error);
     return { success: false, error: "Erro ao iniciar novo set" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// FINISH MATCH (salva set atual e marca como FINISHED)
+// ══════════════════════════════════════════════════════════════
+export async function finishMatch(
+  matchId: string,
+): Promise<ActionResponse> {
+  try {
+    const user = await requireAuth();
+
+    const match = await prisma.match.findFirst({
+      where: { id: matchId, team: { userId: user.id } },
+      select: { id: true, scoreHome: true, scoreAway: true, status: true },
+    });
+
+    if (!match) {
+      return { success: false, error: "Partida não encontrada" };
+    }
+
+    if (match.status === "FINISHED") {
+      return { success: false, error: "Partida já foi finalizada" };
+    }
+
+    await prisma.match.update({
+      where: { id: matchId },
+      data: {
+        status: "FINISHED",
+        setsHome: { push: match.scoreHome },
+        setsAway: { push: match.scoreAway },
+      },
+    });
+
+    revalidatePath("/matches");
+    revalidatePath(`/scout/${matchId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("[FINISH_MATCH]", error);
+    return { success: false, error: "Erro ao finalizar partida" };
   }
 }

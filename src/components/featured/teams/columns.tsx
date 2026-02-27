@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { TeamType } from "@/generated/prisma";
 import { TEAM_TYPE_LABELS } from "@/lib/volleyball";
@@ -11,6 +11,7 @@ export type TeamRow = {
   id: string;
   name: string;
   type: TeamType;
+  logoUrl: string | null;
   _count: {
     players: number;
     matches: number;
@@ -23,6 +24,9 @@ export const columns: ColumnDef<TeamRow>[] = [
     header: "",
     cell: ({ row }) => (
       <Avatar size='sm'>
+        {row.original.logoUrl && (
+          <AvatarImage src={row.original.logoUrl} alt={row.original.name} />
+        )}
         <AvatarFallback>{getInitials(row.original.name)}</AvatarFallback>
       </Avatar>
     ),

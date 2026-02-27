@@ -1,9 +1,17 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChartNoAxesColumnIncreasing, CircleX, Play } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Loader2, Play, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -12,7 +20,6 @@ import {
 } from "@/components/ui/tooltip";
 import type { MatchStatus } from "@/generated/prisma/enums";
 import { useMatches } from "@/hooks/use-matches";
-import { MATCH_STATUS_LABELS } from "@/lib/volleyball";
 
 export type MatchRow = {
   id: string;
@@ -20,30 +27,25 @@ export type MatchRow = {
   location: string | null;
   date: Date;
   status: MatchStatus;
-  setsHome: number[];
-  setsAway: number[];
   team: {
     id: string;
     name: string;
   };
 };
 
-const statusColors: Record<MatchStatus, string> = {
-  SCHEDULED: "bg-blue-600 border-blue-700 text-white",
-  LIVE: "bg-green-600 border-green-700 text-white",
-  FINISHED: "bg-slate-500 border-slate-600 text-white",
-  CANCELED: "bg-red-600 border-red-700 text-white",
-};
-
-function formatScore(setsHome: number[], setsAway: number[]): string {
-  if (setsHome.length === 0) return "—";
-  const winsHome = setsHome.filter((s, i) => s > setsAway[i]).length;
-  const winsAway = setsAway.filter((s, i) => s > setsHome[i]).length;
-  return `${winsHome}x${winsAway}`;
-}
-
 function MatchOptionsCell({ match }: { match: MatchRow }) {
-  const { startMatch, cancelMatch, isPending } = useMatches();
+  const { startMatch, deleteMatch, isPending } = useMatches();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const isFinished = match.status === "FINISHED";
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    await deleteMatch({ id: match.id });
+    setDeleting(false);
+    setDeleteOpen(false);
+  };
 
   return (
     <TooltipProvider>
@@ -53,13 +55,15 @@ function MatchOptionsCell({ match }: { match: MatchRow }) {
             <Button
               variant='outline'
               size='icon'
-              disabled={match.status !== "SCHEDULED" || isPending}
+              disabled={isPending || isFinished}
               onClick={() => startMatch(match.id)}
             >
               <Play className='size-4' />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Iniciar Scout</TooltipContent>
+          <TooltipContent>
+            {isFinished ? "Partida finalizada" : "Iniciar Scout"}
+          </TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -67,39 +71,45 @@ function MatchOptionsCell({ match }: { match: MatchRow }) {
             <Button
               variant='outline'
               size='icon'
-              disabled={match.status !== "FINISHED"}
-              asChild={match.status === "FINISHED"}
+              disabled={isPending}
+              onClick={() => setDeleteOpen(true)}
             >
-              {match.status === "FINISHED" ? (
-                <a href={`/stats/matches/${match.id}`}>
-                  <ChartNoAxesColumnIncreasing className='size-4' />
-                </a>
-              ) : (
-                <ChartNoAxesColumnIncreasing className='size-4' />
-              )}
+              <Trash2 className='size-4' />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Ver Estatísticas</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant='outline'
-              size='icon'
-              disabled={
-                match.status === "CANCELED" ||
-                match.status === "FINISHED" ||
-                isPending
-              }
-              onClick={() => cancelMatch(match.id)}
-            >
-              <CircleX className='size-4' />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Cancelar Partida</TooltipContent>
+          <TooltipContent>Excluir Partida</TooltipContent>
         </Tooltip>
       </div>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent showCloseButton={false} className='max-w-sm p-6'>
+          <DialogHeader>
+            <DialogTitle>Excluir partida?</DialogTitle>
+            <DialogDescription>
+              {isFinished
+                ? "Todos os dados do scout serão excluídos permanentemente — ações por jogador, escalação e placar de cada set. Essa ação não pode ser desfeita."
+                : "A partida será excluída. Essa ação não pode ser desfeita."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className='mt-2'>
+            <Button
+              variant='outline'
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant='destructive'
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting && <Loader2 className='mr-2 size-4 animate-spin' />}
+              Excluir partida
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 }
@@ -147,25 +157,6 @@ export const columns: ColumnDef<MatchRow>[] = [
     accessorKey: "location",
     header: "Local",
     cell: ({ row }) => row.original.location || "—",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge className={statusColors[row.original.status]}>
-        {MATCH_STATUS_LABELS[row.original.status]}
-      </Badge>
-    ),
-    filterFn: (row, _columnId, filterValue) => {
-      if (filterValue === "all") return true;
-      return row.original.status === filterValue;
-    },
-  },
-  {
-    id: "score",
-    header: "Placar",
-    cell: ({ row }) =>
-      formatScore(row.original.setsHome, row.original.setsAway),
   },
   {
     id: "options",

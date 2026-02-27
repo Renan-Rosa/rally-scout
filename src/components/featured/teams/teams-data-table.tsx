@@ -10,6 +10,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,15 +31,16 @@ import {
 } from "@/components/ui/table";
 import { TEAM_TYPE_LABELS } from "@/lib/volleyball";
 
-interface TeamsDataTableProps<TData, TValue> {
+interface TeamsDataTableProps<TData extends { id: string }, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function TeamsDataTable<TData, TValue>({
+export function TeamsDataTable<TData extends { id: string }, TValue>({
   columns,
   data,
 }: TeamsDataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
@@ -114,7 +116,11 @@ export function TeamsDataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className='cursor-pointer'
+                  onClick={() => router.push(`/teams/${row.original.id}`)}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(

@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeaderProfile, type User } from "@/components/shared/profile";
 import { Menu } from "./menu";
-import { ModeToggle } from "./mode-toggle";
 
 type HeaderProps = {
   user: User;
@@ -22,7 +21,6 @@ export function Header({ user }: HeaderProps) {
       <Menu />
       <div className='flex items-center gap-4'>
         <span className='text-sm text-muted-foreground'>Plano</span>
-        <ModeToggle />
         <HeaderProfile user={user} />
       </div>
     </header>

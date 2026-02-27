@@ -8,8 +8,6 @@ type Match = {
   opponent: string;
   date: Date;
   status: "SCHEDULED" | "LIVE" | "FINISHED" | "CANCELED";
-  scoreHome?: number;
-  scoreAway?: number;
   setsHome?: number[];
   setsAway?: number[];
   team: {
@@ -45,7 +43,7 @@ export function MatchCards({ nextMatch, lastMatch }: MatchCardsProps) {
                 </p>
               </div>
               <Button asChild className='w-full'>
-                <Link href={`/dashboard/scout/${nextMatch.id}`}>
+                <Link href={`/scout/${nextMatch.id}`}>
                   <Play className='mr-2 size-4' />
                   Iniciar Scout
                 </Link>
@@ -56,7 +54,7 @@ export function MatchCards({ nextMatch, lastMatch }: MatchCardsProps) {
               message='Nenhuma partida agendada'
               action={{
                 label: "Agendar Partida",
-                href: "/dashboard/matches/new",
+                href: "/matches/new",
               }}
             />
           )}
@@ -73,36 +71,49 @@ export function MatchCards({ nextMatch, lastMatch }: MatchCardsProps) {
         </CardHeader>
         <CardContent>
           {lastMatch ? (
-            <div className='space-y-3'>
-              <div>
-                <p className='text-lg font-semibold'>vs {lastMatch.opponent}</p>
-                <div className='flex items-center gap-2'>
-                  <span className='text-2xl font-bold'>
-                    {lastMatch.setsHome?.length || 0}x
-                    {lastMatch.setsAway?.length || 0}
-                  </span>
-                  <MatchResultBadge
-                    won={
-                      (lastMatch.setsHome?.length || 0) >
-                      (lastMatch.setsAway?.length || 0)
-                    }
-                  />
-                </div>
-              </div>
-              <Button variant='outline' asChild className='w-full'>
-                <Link href={`/dashboard/matches/${lastMatch.id}`}>
-                  Ver Estatísticas
-                </Link>
-              </Button>
-            </div>
+            <LastMatchContent match={lastMatch} />
           ) : (
             <EmptyState
               message='Nenhuma partida finalizada'
-              action={{ label: "Ver Partidas", href: "/dashboard/matches" }}
+              action={{ label: "Ver Partidas", href: "/matches" }}
             />
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function LastMatchContent({ match }: { match: Match }) {
+  const setsHome = match.setsHome ?? [];
+  const setsAway = match.setsAway ?? [];
+
+  // Conta sets vencidos comparando placar de cada set individualmente
+  const homeSetWins = setsHome.filter((s, i) => s > (setsAway[i] ?? 0)).length;
+  const awaySetWins = setsAway.filter((s, i) => s > (setsHome[i] ?? 0)).length;
+  const won = homeSetWins > awaySetWins;
+
+  return (
+    <div className='space-y-3'>
+      <div>
+        <p className='text-lg font-semibold'>vs {match.opponent}</p>
+        <div className='flex items-center gap-2'>
+          <span className='text-2xl font-bold tabular-nums'>
+            {homeSetWins}x{awaySetWins}
+          </span>
+          <MatchResultBadge won={won} />
+        </div>
+        {setsHome.length > 0 && (
+          <p className='text-xs text-muted-foreground mt-1'>
+            {setsHome.map((h, i) => `${h}–${setsAway[i] ?? 0}`).join("  ")}
+          </p>
+        )}
+      </div>
+      <Button variant='outline' asChild className='w-full'>
+        <Link href={`/scout/${match.id}`}>
+          Ver Scout
+        </Link>
+      </Button>
     </div>
   );
 }

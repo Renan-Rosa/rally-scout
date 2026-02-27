@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link"; // Use o Link do Next.js para navegação interna
-import { useTheme } from "next-themes";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { type SignInInput, signInSchema } from "@/actions/schemas/auth";
@@ -49,7 +48,12 @@ export function SignInForm({
         <FieldGroup>
           <div className='flex flex-col items-center gap-2 text-center'>
             {/* CORRIGIDO: Tag <a> aberta corretamente */}
-            <Image src="/logo_orange.svg" alt='Rally' width={150} height={150} />
+            <Image
+              src='/logo_orange.svg'
+              alt='Rally'
+              width={150}
+              height={150}
+            />
 
             <h1 className='text-xl font-bold'>Bem vindo ao Rally</h1>
             <FieldDescription>

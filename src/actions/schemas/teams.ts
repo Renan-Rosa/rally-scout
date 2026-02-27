@@ -14,6 +14,7 @@ export const createTeamSchema = z.object({
     .min(2, "Nome deve ter no mínimo 2 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres"),
   type: teamTypeEnum,
+  logoUrl: z.string().optional(),
 });
 
 export type CreateTeamInput = z.infer<typeof createTeamSchema>;
@@ -29,6 +30,7 @@ export const updateTeamSchema = z.object({
     .min(2, "Nome deve ter no mínimo 2 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres"),
   type: teamTypeEnum,
+  logoUrl: z.string().optional(),
 });
 
 export type UpdateTeamInput = z.infer<typeof updateTeamSchema>;

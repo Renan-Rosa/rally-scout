@@ -51,8 +51,9 @@ export function PlayerPicker({
               {players.map((player) => (
                 <li key={player.id}>
                   <Button
+                    variant='ghost'
                     onClick={() => onSelect(player)}
-                    className='w-full flex items-center gap-3 rounded-lg p-3 hover:bg-muted transition-colors text-left'
+                    className='w-full flex items-center gap-3 rounded-lg p-3 h-auto transition-colors text-left'
                   >
                     <Avatar size='lg'>
                       <AvatarFallback className='font-bold text-base'>

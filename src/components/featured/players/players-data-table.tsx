@@ -10,6 +10,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,16 +29,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { POSITION_LABELS } from "@/lib/volleyball";
+import { positionDotColors } from "./columns";
+import type { Position } from "@/generated/prisma/enums";
 
-interface PlayersDataTableProps<TData, TValue> {
+interface PlayersDataTableProps<TData extends { id: string }, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function PlayersDataTable<TData, TValue>({
+const POSITIONS = Object.keys(POSITION_LABELS) as Position[];
+
+export function PlayersDataTable<TData extends { id: string }, TValue>({
   columns,
   data,
 }: PlayersDataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
@@ -55,7 +62,7 @@ export function PlayersDataTable<TData, TValue>({
   return (
     <div className='space-y-4'>
       {/* Filtros */}
-      <div className='flex items-center gap-4'>
+      <div className='flex flex-wrap items-center gap-3'>
         <div className='relative max-w-sm flex-1'>
           <Search className='text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2' />
           <Input
@@ -67,6 +74,35 @@ export function PlayersDataTable<TData, TValue>({
             className='pl-9'
           />
         </div>
+
+        {/* Filtro por posição */}
+        <Select
+          value={
+            (table.getColumn("position")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) =>
+            table.getColumn("position")?.setFilterValue(value)
+          }
+        >
+          <SelectTrigger className='w-48'>
+            <SelectValue placeholder='Posição' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>Todas as posições</SelectItem>
+            {POSITIONS.map((pos) => (
+              <SelectItem key={pos} value={pos}>
+                <div className='flex items-center gap-2'>
+                  <span
+                    className={`size-2.5 rounded-full ${positionDotColors[pos]}`}
+                  />
+                  {POSITION_LABELS[pos]}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Filtro por status */}
         <Select
           value={
             (table.getColumn("isActive")?.getFilterValue() as string) ?? "all"
@@ -75,7 +111,7 @@ export function PlayersDataTable<TData, TValue>({
             table.getColumn("isActive")?.setFilterValue(value)
           }
         >
-          <SelectTrigger className='w-40'>
+          <SelectTrigger className='w-36'>
             <SelectValue placeholder='Status' />
           </SelectTrigger>
           <SelectContent>
@@ -108,7 +144,11 @@ export function PlayersDataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className='cursor-pointer'
+                  onClick={() => router.push(`/players/${row.original.id}`)}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
