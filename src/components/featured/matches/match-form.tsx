@@ -35,7 +35,8 @@ export function MatchForm({ teams }: MatchFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<CreateMatchInput>({
-    resolver: zodResolver(createMatchSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(createMatchSchema) as any,
     defaultValues: {
       opponent: "",
       location: "",
