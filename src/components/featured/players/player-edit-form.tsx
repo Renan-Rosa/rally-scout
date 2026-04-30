@@ -23,9 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Position } from "@/generated/prisma/enums";
 import { usePlayers } from "@/hooks/use-players";
 import { POSITION_LABELS } from "@/lib/volleyball";
-import type { Position } from "@/generated/prisma/enums";
 
 interface PlayerEditFormProps {
   player: {

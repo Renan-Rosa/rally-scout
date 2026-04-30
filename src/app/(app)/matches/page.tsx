@@ -1,11 +1,15 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { getMatches } from "@/actions/matches";
+import { getLiveMatch, getMatches } from "@/actions/matches";
 import { MatchesTable } from "@/components/featured/matches/matches-table";
 import { Button } from "@/components/ui/button";
 
 export default async function MatchesPage() {
-  const result = await getMatches();
+  const [result, liveResult] = await Promise.all([
+    getMatches(),
+    getLiveMatch(),
+  ]);
+  const liveMatchId = liveResult.success ? (liveResult.data?.id ?? null) : null;
 
   if (!result.success || !result.data) {
     return (
@@ -32,7 +36,7 @@ export default async function MatchesPage() {
         </Button>
       </div>
 
-      <MatchesTable matches={result.data} />
+      <MatchesTable matches={result.data} liveMatchId={liveMatchId} />
     </div>
   );
 }

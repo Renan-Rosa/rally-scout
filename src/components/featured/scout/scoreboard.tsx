@@ -82,11 +82,21 @@ export function Scoreboard({
                   key={set}
                   className={cn(
                     "text-[11px] font-semibold rounded px-2 py-0.5 tabular-nums border",
-                    isCurrent && "bg-primary text-primary-foreground border-transparent",
-                    isPast && wonSet && "bg-green-500/15 text-green-400 border-green-500/30",
-                    isPast && lostSet && "bg-red-500/15 text-red-400 border-red-500/30",
-                    isPast && !wonSet && !lostSet && "bg-muted text-muted-foreground border-transparent",
-                    !isCurrent && !isPast && "text-muted-foreground/30 border-transparent",
+                    isCurrent &&
+                      "bg-primary text-primary-foreground border-transparent",
+                    isPast &&
+                      wonSet &&
+                      "bg-green-500/15 text-green-400 border-green-500/30",
+                    isPast &&
+                      lostSet &&
+                      "bg-red-500/15 text-red-400 border-red-500/30",
+                    isPast &&
+                      !wonSet &&
+                      !lostSet &&
+                      "bg-muted text-muted-foreground border-transparent",
+                    !isCurrent &&
+                      !isPast &&
+                      "text-muted-foreground/30 border-transparent",
                   )}
                 >
                   {isPast && history

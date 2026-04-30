@@ -9,7 +9,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { ActionResult, ActionType, Position } from "@/generated/prisma/enums";
+import type {
+  ActionResult,
+  ActionType,
+  Position,
+} from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 import { ACTION_TYPE_LABELS, POSITION_SHORT_LABELS } from "@/lib/volleyball";
 import { POSITION_BADGE_COLOR } from "./player-slot";
@@ -114,7 +118,9 @@ function computePlayerSummaries(
   // Parte do lineup — garante que todos os 6 apareçam, mesmo sem ações
   return lineupPlayers
     .map((p) => {
-      const playerActions = myActions.filter((a) => a.player?.number === p.number);
+      const playerActions = myActions.filter(
+        (a) => a.player?.number === p.number,
+      );
       return {
         name: p.name,
         number: p.number,
@@ -172,8 +178,8 @@ function TugOfWarRow({ label, stats }: { label: string; stats: TypeStats }) {
 }
 
 const scoreChartConfig: ChartConfig = {
-  home: { label: "Meu Time", color: "#22c55e" },   // green-500
-  away: { label: "Adversário", color: "#ef4444" },  // red-500
+  home: { label: "Meu Time", color: "#22c55e" }, // green-500
+  away: { label: "Adversário", color: "#ef4444" }, // red-500
 };
 
 // ── Main Component ─────────────────────────────────────────────────────────────
@@ -367,13 +373,6 @@ export function AnalyticsSection({
                   tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                   tickLine={false}
                   axisLine={false}
-                  label={{
-                    value: "Rallies",
-                    position: "insideBottom",
-                    offset: -2,
-                    fontSize: 10,
-                    fill: "hsl(var(--muted-foreground))",
-                  }}
                 />
                 <YAxis
                   tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
@@ -466,7 +465,8 @@ export function AnalyticsSection({
       ) : (
         <div className='grid grid-cols-2 gap-3'>
           {playerSummaries.map((p) => {
-            const eff = p.total > 0 ? ((p.points / p.total) * 100).toFixed(0) : "0";
+            const eff =
+              p.total > 0 ? ((p.points / p.total) * 100).toFixed(0) : "0";
             return (
               <Card key={p.number}>
                 <CardContent className='p-3 flex items-center gap-3'>
@@ -476,7 +476,9 @@ export function AnalyticsSection({
                       {p.number}
                     </div>
                     {p.position && (
-                      <span className={`absolute -bottom-1 -right-1 rounded-full px-1 text-white text-[9px] font-semibold leading-4 min-w-4 text-center ${POSITION_BADGE_COLOR[p.position]}`}>
+                      <span
+                        className={`absolute -bottom-1 -right-1 rounded-full px-1 text-white text-[9px] font-semibold leading-4 min-w-4 text-center ${POSITION_BADGE_COLOR[p.position]}`}
+                      >
                         {POSITION_SHORT_LABELS[p.position]}
                       </span>
                     )}

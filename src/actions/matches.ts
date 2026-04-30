@@ -128,7 +128,6 @@ export async function createMatch(
     const match = await prisma.match.create({
       data: {
         opponent: parsed.data.opponent,
-        location: parsed.data.location || null,
         date: parsed.data.date,
         teamId: parsed.data.teamId,
       },
@@ -171,7 +170,6 @@ export async function updateMatch(
       where: { id: parsed.data.id },
       data: {
         opponent: parsed.data.opponent,
-        location: parsed.data.location || null,
         date: parsed.data.date,
         status: parsed.data.status,
       },
@@ -269,6 +267,10 @@ export async function startMatch(id: string): Promise<ActionResponse> {
 
     if (!match) {
       return { success: false, error: "Partida não encontrada" };
+    }
+
+    if (match.status === "LIVE") {
+      return { success: true };
     }
 
     if (match.status !== "SCHEDULED") {

@@ -54,19 +54,6 @@ export async function getDashboardData() {
     where: { team: { userId: user.id } },
   });
 
-  // Próxima partida
-  const nextMatch = await prisma.match.findFirst({
-    where: {
-      team: { userId: user.id },
-      status: "SCHEDULED",
-      date: { gte: new Date() },
-    },
-    include: {
-      team: true,
-    },
-    orderBy: { date: "asc" },
-  });
-
   // Última partida
   const lastMatch = await prisma.match.findFirst({
     where: {
@@ -132,7 +119,6 @@ export async function getDashboardData() {
       losses,
       winRate,
     },
-    nextMatch,
     lastMatch,
     topPerformers,
   };

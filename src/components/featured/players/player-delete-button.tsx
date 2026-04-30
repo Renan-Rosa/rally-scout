@@ -2,7 +2,6 @@
 
 import { Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { usePlayers } from "@/hooks/use-players";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { usePlayers } from "@/hooks/use-players";
 
 interface PlayerDeleteButtonProps {
   playerId: string;

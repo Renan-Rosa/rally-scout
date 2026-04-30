@@ -11,10 +11,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart";
 import type { ActionResult } from "@/generated/prisma/enums";
 
@@ -37,11 +37,11 @@ const RESULT_STYLE: Record<
   ActionResult,
   { bar: string; text: string; label: string }
 > = {
-  ERROR:    { bar: "bg-red-500",    text: "text-red-400",    label: "Erro" },
+  ERROR: { bar: "bg-red-500", text: "text-red-400", label: "Erro" },
   NEGATIVE: { bar: "bg-orange-400", text: "text-orange-400", label: "Neg" },
-  NEUTRAL:  { bar: "bg-zinc-500",   text: "text-zinc-400",   label: "Neu" },
-  POSITIVE: { bar: "bg-sky-400",    text: "text-sky-400",    label: "Pos" },
-  POINT:    { bar: "bg-green-500",  text: "text-green-400",  label: "Ponto" },
+  NEUTRAL: { bar: "bg-zinc-500", text: "text-zinc-400", label: "Neu" },
+  POSITIVE: { bar: "bg-sky-400", text: "text-sky-400", label: "Pos" },
+  POINT: { bar: "bg-green-500", text: "text-green-400", label: "Ponto" },
 };
 
 interface PlayerStatsChartProps {
@@ -129,7 +129,9 @@ export function PlayerStatsChart({ stats }: PlayerStatsChartProps) {
                 Melhor fundamento
               </div>
               <p className='text-lg font-bold leading-tight'>{best.label}</p>
-              <p className='text-muted-foreground text-xs'>{best.score}% efic.</p>
+              <p className='text-muted-foreground text-xs'>
+                {best.score}% efic.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -142,7 +144,9 @@ export function PlayerStatsChart({ stats }: PlayerStatsChartProps) {
                 Pior fundamento
               </div>
               <p className='text-lg font-bold leading-tight'>{worst.label}</p>
-              <p className='text-muted-foreground text-xs'>{worst.score}% efic.</p>
+              <p className='text-muted-foreground text-xs'>
+                {worst.score}% efic.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -202,7 +206,9 @@ export function PlayerStatsChart({ stats }: PlayerStatsChartProps) {
                 key={r}
                 className='flex items-center gap-1.5 text-[11px] text-muted-foreground'
               >
-                <span className={`size-2 rounded-full inline-block ${RESULT_STYLE[r].bar}`} />
+                <span
+                  className={`size-2 rounded-full inline-block ${RESULT_STYLE[r].bar}`}
+                />
                 {RESULT_STYLE[r].label}
               </span>
             ))}
@@ -265,7 +271,8 @@ export function PlayerStatsChart({ stats }: PlayerStatsChartProps) {
                         {RESULT_STYLE[r].label}{" "}
                         <span className='font-bold'>{count}</span>
                         <span className='text-muted-foreground/60 font-normal'>
-                          {" "}({pct}%)
+                          {" "}
+                          ({pct}%)
                         </span>
                       </span>
                     );

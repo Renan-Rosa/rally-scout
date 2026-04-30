@@ -29,9 +29,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { Position } from "@/generated/prisma/enums";
 import { POSITION_LABELS } from "@/lib/volleyball";
 import { positionDotColors } from "./columns";
-import type { Position } from "@/generated/prisma/enums";
 
 interface PlayersDataTableProps<TData extends { id: string }, TValue> {
   columns: ColumnDef<TData, TValue>[];

@@ -35,11 +35,13 @@ import type { MatchRow } from "./columns";
 interface MatchesDataTableProps<TValue> {
   columns: ColumnDef<MatchRow, TValue>[];
   data: MatchRow[];
+  liveMatchId?: string | null;
 }
 
 export function MatchesDataTable<TValue>({
   columns,
   data,
+  liveMatchId = null,
 }: MatchesDataTableProps<TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -54,6 +56,7 @@ export function MatchesDataTable<TValue>({
     state: {
       columnFilters,
     },
+    meta: { liveMatchId },
   });
 
   const handleDateRangeChange = (range: DateRange | undefined) => {
@@ -100,7 +103,6 @@ export function MatchesDataTable<TValue>({
             />
           </PopoverContent>
         </Popover>
-
       </div>
 
       {/* Tabela */}

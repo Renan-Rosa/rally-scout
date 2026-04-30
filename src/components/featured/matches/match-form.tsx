@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -10,6 +12,7 @@ import {
   createMatchSchema,
 } from "@/actions/schemas/matches";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Field,
   FieldError,
@@ -18,6 +21,11 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -25,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMatches } from "@/hooks/use-matches";
+import { cn } from "@/lib/utils";
 
 interface MatchFormProps {
   teams: { id: string; name: string }[];
@@ -39,8 +48,7 @@ export function MatchForm({ teams }: MatchFormProps) {
     resolver: zodResolver(createMatchSchema) as any,
     defaultValues: {
       opponent: "",
-      location: "",
-      date: undefined,
+      date: new Date(),
       teamId: "",
     },
   });
@@ -76,25 +84,41 @@ export function MatchForm({ teams }: MatchFormProps) {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor='location'>Local</FieldLabel>
-          <Input
-            id='location'
-            placeholder='Ex: Ginásio Municipal'
-            disabled={isPending}
-            {...form.register("location")}
-          />
-          {form.formState.errors.location && (
-            <FieldError>{form.formState.errors.location.message}</FieldError>
-          )}
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor='date'>Data e Hora</FieldLabel>
-          <Input
-            id='date'
-            type='datetime-local'
-            disabled={isPending}
-            {...form.register("date")}
+          <FieldLabel>Data da Partida</FieldLabel>
+          <Controller
+            control={form.control}
+            name='date'
+            render={({ field }) => (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    disabled={isPending}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !field.value && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className='mr-2 size-4' />
+                    {field.value ? (
+                      format(field.value, "PPP", { locale: ptBR })
+                    ) : (
+                      <span>Selecione a data</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-0' align='start'>
+                  <Calendar
+                    mode='single'
+                    selected={field.value}
+                    onSelect={(date) => field.onChange(date ?? new Date())}
+                    locale={ptBR}
+                    autoFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           />
           {form.formState.errors.date && (
             <FieldError>{form.formState.errors.date.message}</FieldError>

@@ -99,7 +99,6 @@ model Match {
   team         Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   opponent     String      // nome do adversário (simplificado pro MVP)
-  location     String?
   date         DateTime    @default(now())
   status       MatchStatus @default(SCHEDULED)
 

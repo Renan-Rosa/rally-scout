@@ -51,3 +51,35 @@ export const rotateLineupSchema = z.object({
 });
 
 export type RotateLineupInput = z.infer<typeof rotateLineupSchema>;
+
+// ══════════════════════════════════════════════════════════════
+// SYNC MATCH (offline-first: bulk push do scout completo)
+// ══════════════════════════════════════════════════════════════
+export const syncMatchSchema = z.object({
+  matchId: z.string().cuid(),
+  lineup: z.array(
+    z.object({
+      slot: z.number().int().min(1).max(6),
+      playerId: z.string().cuid(),
+    }),
+  ),
+  actions: z.array(
+    z.object({
+      clientId: z.string().min(1),
+      playerId: z.string().cuid().nullable(),
+      type: z.enum(["SERVE", "RECEIVE", "ATTACK", "BLOCK", "DIG", "SET"]),
+      result: z.enum(["ERROR", "NEGATIVE", "NEUTRAL", "POSITIVE", "POINT"]),
+      set: z.number().int().min(1).max(5),
+      isOpponentPoint: z.boolean(),
+      createdAtMs: z.number().int().nonnegative(),
+    }),
+  ),
+  currentSet: z.number().int().min(1).max(5),
+  scoreHome: z.number().int().nonnegative(),
+  scoreAway: z.number().int().nonnegative(),
+  setsHome: z.array(z.number().int().nonnegative()),
+  setsAway: z.array(z.number().int().nonnegative()),
+  finalize: z.boolean().default(true),
+});
+
+export type SyncMatchInput = z.infer<typeof syncMatchSchema>;

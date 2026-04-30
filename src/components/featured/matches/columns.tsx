@@ -24,7 +24,6 @@ import { useMatches } from "@/hooks/use-matches";
 export type MatchRow = {
   id: string;
   opponent: string;
-  location: string | null;
   date: Date;
   status: MatchStatus;
   team: {
@@ -33,12 +32,34 @@ export type MatchRow = {
   };
 };
 
-function MatchOptionsCell({ match }: { match: MatchRow }) {
+function MatchOptionsCell({
+  match,
+  liveMatchId,
+}: {
+  match: MatchRow;
+  liveMatchId: string | null;
+}) {
   const { startMatch, deleteMatch, isPending } = useMatches();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const isFinished = match.status === "FINISHED";
+  const isCanceled = match.status === "CANCELED";
+  const isThisLive = match.status === "LIVE";
+  const hasOtherLive = liveMatchId !== null && liveMatchId !== match.id;
+
+  const startDisabled =
+    isPending || isFinished || isCanceled || hasOtherLive;
+
+  const startTooltip = isFinished
+    ? "Partida finalizada"
+    : isCanceled
+      ? "Partida cancelada"
+      : isThisLive
+        ? "Voltar ao scout"
+        : hasOtherLive
+          ? "Já existe uma partida em andamento"
+          : "Iniciar Scout";
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -55,15 +76,13 @@ function MatchOptionsCell({ match }: { match: MatchRow }) {
             <Button
               variant='outline'
               size='icon'
-              disabled={isPending || isFinished}
+              disabled={startDisabled}
               onClick={() => startMatch(match.id)}
             >
               <Play className='size-4' />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            {isFinished ? "Partida finalizada" : "Iniciar Scout"}
-          </TooltipContent>
+          <TooltipContent>{startTooltip}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -154,14 +173,14 @@ export const columns: ColumnDef<MatchRow>[] = [
     },
   },
   {
-    accessorKey: "location",
-    header: "Local",
-    cell: ({ row }) => row.original.location || "—",
-  },
-  {
     id: "options",
     header: "",
-    cell: ({ row }) => <MatchOptionsCell match={row.original} />,
+    cell: ({ row, table }) => {
+      const liveMatchId =
+        (table.options.meta as { liveMatchId?: string | null } | undefined)
+          ?.liveMatchId ?? null;
+      return <MatchOptionsCell match={row.original} liveMatchId={liveMatchId} />;
+    },
     enableSorting: false,
   },
 ];

@@ -8,10 +8,12 @@ import {
   rotateLineupSchema,
   saveLineupSchema,
   substitutePlayerSchema,
+  syncMatchSchema,
   type CreateActionInput,
   type RotateLineupInput,
   type SaveLineupInput,
   type SubstitutePlayerInput,
+  type SyncMatchInput,
 } from "./schemas/scout";
 
 export type ActionResponse<T = void> = {
@@ -354,6 +356,109 @@ export async function startNewSet(
   } catch (error) {
     console.error("[START_NEW_SET]", error);
     return { success: false, error: "Erro ao iniciar novo set" };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SYNC MATCH (offline-first: empurra todo o scout em uma transação)
+// Substitui actions/lineup/placar pelo snapshot do client.
+// ══════════════════════════════════════════════════════════════
+export async function syncMatch(
+  input: SyncMatchInput,
+): Promise<ActionResponse> {
+  try {
+    const user = await requireAuth();
+
+    const parsed = syncMatchSchema.safeParse(input);
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0].message };
+    }
+
+    const data = parsed.data;
+
+    const match = await prisma.match.findFirst({
+      where: { id: data.matchId, team: { userId: user.id } },
+      select: { id: true, status: true, teamId: true },
+    });
+
+    if (!match) {
+      return { success: false, error: "Partida não encontrada" };
+    }
+
+    if (match.status === "FINISHED" || match.status === "CANCELED") {
+      return {
+        success: false,
+        error: "Partida já finalizada/cancelada — não pode receber sync",
+      };
+    }
+
+    // Valida que todos os jogadores referenciados pertencem ao time da partida
+    const playerIds = new Set<string>();
+    for (const slot of data.lineup) playerIds.add(slot.playerId);
+    for (const a of data.actions)
+      if (a.playerId) playerIds.add(a.playerId);
+
+    if (playerIds.size > 0) {
+      const valid = await prisma.player.count({
+        where: {
+          id: { in: Array.from(playerIds) },
+          teamId: match.teamId,
+        },
+      });
+      if (valid !== playerIds.size) {
+        return {
+          success: false,
+          error: "Há jogadores no scout que não pertencem ao time",
+        };
+      }
+    }
+
+    await prisma.$transaction([
+      prisma.action.deleteMany({ where: { matchId: data.matchId } }),
+      prisma.matchLineup.deleteMany({ where: { matchId: data.matchId } }),
+      prisma.matchLineup.createMany({
+        data: data.lineup.map((s) => ({
+          matchId: data.matchId,
+          slot: s.slot,
+          playerId: s.playerId,
+        })),
+      }),
+      prisma.action.createMany({
+        data: data.actions.map((a) => ({
+          matchId: data.matchId,
+          playerId: a.playerId,
+          type: a.type,
+          result: a.result,
+          set: a.set,
+          isOpponentPoint: a.isOpponentPoint,
+          createdAt: new Date(a.createdAtMs),
+        })),
+      }),
+      prisma.match.update({
+        where: { id: data.matchId },
+        data: {
+          currentSet: data.currentSet,
+          scoreHome: data.scoreHome,
+          scoreAway: data.scoreAway,
+          setsHome: data.finalize
+            ? [...data.setsHome, data.scoreHome]
+            : data.setsHome,
+          setsAway: data.finalize
+            ? [...data.setsAway, data.scoreAway]
+            : data.setsAway,
+          status: data.finalize ? "FINISHED" : "LIVE",
+        },
+      }),
+    ]);
+
+    revalidatePath("/matches");
+    revalidatePath(`/scout/${data.matchId}`);
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("[SYNC_MATCH]", error);
+    return { success: false, error: "Erro ao sincronizar partida" };
   }
 }
 
