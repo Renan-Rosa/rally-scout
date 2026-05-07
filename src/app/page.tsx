@@ -1,163 +1,267 @@
-import { Activity, BarChart3, Shield, Volleyball } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { LandingMobileMenu } from "./_landing-mobile-menu";
 
-const features = [
+const Slashes = ({ className = "" }: { className?: string }) => (
+  <span
+    aria-hidden
+    className={`inline-block h-3 w-6 bg-[length:4px_4px] ${className}`}
+    style={{
+      backgroundImage:
+        "repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 5px)",
+    }}
+  />
+);
+
+const services = [
   {
-    icon: Shield,
-    title: "Times",
-    desc: "Cadastre times e gerencie elencos com posição e número de camisa de cada atleta.",
+    label: "[01]",
+    title: "TIMES",
+    desc: "Cadastre elencos com posição, número e função tática de cada atleta.",
   },
   {
-    icon: Volleyball,
-    title: "Partidas",
-    desc: "Registre jogos com adversário, data e local. Controle placar por set.",
+    label: "[02]",
+    title: "PARTIDAS",
+    desc: "Registre adversário, data, local e placar set a set com histórico completo.",
   },
   {
-    icon: Activity,
-    title: "Scout LIVE",
-    desc: "Registre ações em tempo real: saque, recepção, ataque, bloqueio e defesa.",
+    label: "[03]",
+    title: "SCOUT LIVE",
+    desc: "Saque, recepção, ataque, bloqueio e defesa anotados em tempo real.",
   },
   {
-    icon: BarChart3,
-    title: "Estatísticas",
-    desc: "Visualize desempenho individual e coletivo com dados de todas as partidas.",
+    label: "[04]",
+    title: "ESTATÍSTICAS",
+    desc: "Desempenho individual e coletivo agregado em painéis claros e objetivos.",
   },
 ];
 
 export default function Home() {
   return (
-    <div className='relative flex min-h-screen flex-col overflow-hidden bg-[#080808]'>
-      {/* Dot grid background */}
-      <div
-        className='pointer-events-none absolute inset-0'
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-
-      {/* Orange glow orb — center */}
-      <div
-        className='pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 rounded-full'
-        style={{
-          width: 700,
-          height: 700,
-          background:
-            "radial-gradient(circle, rgba(255,117,31,0.12) 0%, transparent 70%)",
-          filter: "blur(40px)",
-        }}
-      />
-
-      {/* Top-left subtle accent */}
-      <div
-        className='pointer-events-none absolute -left-32 -top-32 rounded-full opacity-30'
-        style={{
-          width: 400,
-          height: 400,
-          background:
-            "radial-gradient(circle, rgba(255,117,31,0.15) 0%, transparent 70%)",
-          filter: "blur(60px)",
-        }}
-      />
-
-      {/* Nav */}
-      <nav className='relative z-10 flex items-center justify-between px-6 py-5 md:px-14'>
-        <span className='text-base font-black tracking-tighter text-white'>
-          RALLY<span className='text-[#ff751f]'>.</span>
-        </span>
-        <div className='flex items-center gap-2'>
-          <Button
-            asChild
-            variant='ghost'
-            size='sm'
-            className='text-white/60 hover:bg-white/5 hover:text-white'
-          >
-            <Link href='/sign-in'>Entrar</Link>
-          </Button>
-          <Button
-            asChild
-            size='sm'
-            className='bg-orange-500 text-white hover:bg-orange-500/85'
-          >
-            <Link href='/sign-up'>Criar conta</Link>
-          </Button>
+    <div className='min-h-screen bg-[#ededed] text-black'>
+      {/* Top meta bar */}
+      <div className='mx-auto flex w-full max-w-[1400px] items-start justify-between px-6 pt-10 md:px-14 md:pt-16'>
+        <div className='max-w-md'>
+          <h2 className='text-sm font-bold tracking-tight md:text-base'>
+            #RALLY_SCOUT
+          </h2>
+          <p className='mt-2 text-[11px] leading-relaxed text-black/45 md:text-xs'>
+            Plataforma de scout para vôlei construída sobre clareza, estrutura e
+            propósito. Transforma ações em decisões com hierarquia visual
+            objetiva.
+          </p>
         </div>
-      </nav>
+        <Slashes className='mt-2 text-black/70' />
+      </div>
 
-      {/* Hero */}
-      <main className='relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-16 pt-8 text-center'>
-        {/* Badge */}
-        <div className='mb-10 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs text-white/50 backdrop-blur-sm'>
-          <span className='size-1.5 animate-pulse rounded-full bg-[#ff751f]' />
-          Scout profissional para vôlei
-        </div>
-
-        {/* RALLY. — main statement */}
-        <h1
-          className='select-none font-black leading-none tracking-tighter text-white'
-          style={{
-            fontSize: "clamp(5.5rem, 20vw, 16rem)",
-            textShadow: "0 0 140px rgba(255,117,31,0.18)",
-          }}
-        >
-          RALLY
-          <span
-            className='text-orange-500'
-            style={{
-              textShadow:
-                "0 0 40px rgba(255,117,31,0.9), 0 0 80px rgba(255,117,31,0.4)",
-            }}
-          >
-            .
-          </span>
-        </h1>
-
-        {/* Tagline */}
-        <p className='mt-6 max-w-sm text-sm text-white/40 md:max-w-md md:text-base'>
-          Gerencie times, registre ações e analise o desempenho dos seus atletas
-          em tempo real.
-        </p>
-
-        {/* CTAs */}
-        <div className='mt-10 flex flex-col gap-3 sm:flex-row'>
-          <Button
-            asChild
-            size='lg'
-            className='min-w-40 bg-orange-500 text-white hover:bg-[#ff751f]/85'
-          >
-            <Link href='/sign-up'>Começar</Link>
-          </Button>
-          <Button
-            asChild
-            size='lg'
-            variant='outline'
-            className='min-w-40 border-white/10 bg-white/[0.04] text-white backdrop-blur-sm hover:bg-white/[0.08]'
-          >
-            <Link href='/sign-in'>Já tenho conta</Link>
-          </Button>
-        </div>
-
-        {/* Feature cards */}
-        <div className='mt-24 grid w-full max-w-4xl grid-cols-1 gap-3 text-left sm:grid-cols-2 lg:grid-cols-4'>
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className='group rounded-xl border border-white/[0.07] bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-300 hover:border-[#ff751f]/30 hover:bg-white/[0.06]'
-            >
-              <f.icon className='mb-3 size-6 text-[#ff751f] transition-transform duration-300 group-hover:scale-110' />
-              <h3 className='mb-1.5 font-semibold text-white'>{f.title}</h3>
-              <p className='text-xs leading-relaxed text-white/40'>{f.desc}</p>
+      {/* Hero card */}
+      <section className='mx-auto mt-10 w-full max-w-[1400px] px-6 md:px-14'>
+        <div className='relative overflow-hidden rounded-sm bg-black text-white'>
+          {/* Inner nav */}
+          <div className='flex items-center justify-between px-6 pt-6 md:px-10'>
+            <span className='text-sm font-black tracking-tighter'>
+              R<span className='text-[#ff751f]'>.</span>
+            </span>
+            <nav className='hidden items-center gap-8 text-[11px] tracking-widest text-white/60 md:flex'>
+              <Link href='#sobre' className='hover:text-white'>
+                [SOBRE]
+              </Link>
+              <Link href='#recursos' className='hover:text-white'>
+                [RECURSOS]
+              </Link>
+              <Link href='#contato' className='hover:text-white'>
+                [CONTATO]
+              </Link>
+            </nav>
+            <LandingMobileMenu />
+            <div className='hidden md:flex flex-col items-end gap-1'>
+              <span className='block h-[2px] w-6 bg-white' />
+              <span className='block h-[2px] w-6 bg-white' />
+              <span className='block h-[2px] w-4 bg-white' />
             </div>
-          ))}
-        </div>
-      </main>
+          </div>
 
-      {/* Footer */}
-      <footer className='relative z-10 border-t border-white/[0.06] py-5 text-center text-xs text-white/20'>
-        © {new Date().getFullYear()} Rally Scout. Todos os direitos reservados.
-      </footer>
+          {/* Massive title */}
+          <div className='relative px-6 pt-8 md:px-10 md:pt-4'>
+            <h1
+              className='select-none font-black leading-[0.85] tracking-[-0.04em] text-[#ff751f]'
+              style={{ fontSize: "clamp(4.5rem, 17vw, 15rem)" }}
+            >
+              RALLY.
+            </h1>
+          </div>
+
+          {/* Hero body */}
+          <div className='grid grid-cols-1 gap-8 px-6 pb-10 pt-8 md:grid-cols-12 md:px-10 md:pb-14'>
+            <div className='md:col-span-4 md:col-start-5'>
+              <p className='max-w-xs text-xs leading-relaxed text-white/70'>
+                Sistema de scout que transforma ações de quadra em estrutura,
+                direção e impacto duradouro para o seu time.
+              </p>
+            </div>
+
+            <div className='md:col-span-3 md:col-start-1 md:row-start-1'>
+              <Slashes className='text-white' />
+              <div
+                className='mt-3 font-black leading-none tracking-tight text-[#ff751f]'
+                style={{ fontSize: "clamp(2.5rem, 5vw, 3.75rem)" }}
+              >
+                12+
+              </div>
+              <p className='mt-2 text-xs text-white/60'>
+                Tipos de ação registrados por rally
+              </p>
+            </div>
+
+            <div className='md:col-span-4 md:col-start-1'>
+              <Button
+                asChild
+                className='h-12 w-full rounded-none bg-white px-8 text-[11px] font-bold tracking-[0.2em] text-black hover:bg-white/90 md:w-auto'
+              >
+                <Link href='/sign-up'>COMEÇAR PROJETO</Link>
+              </Button>
+            </div>
+
+            <div className='self-end md:col-span-4 md:col-start-9 md:row-start-1 md:text-right'>
+              <p className='text-xl font-black leading-tight tracking-tight md:text-2xl'>
+                <span className='text-[#ff751f]'>SCOUT</span> NÃO É
+                <br />
+                ANOTAÇÃO.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tags row */}
+      <section className='mx-auto mt-10 flex w-full max-w-[1400px] items-center justify-between px-6 md:px-14'>
+        <div className='flex flex-wrap gap-6 text-[11px] tracking-widest text-black/55'>
+          <span>[ESTRATÉGIA]</span>
+          <span>[PERFORMANCE]</span>
+          <span>[ANÁLISE]</span>
+        </div>
+        <Button
+          asChild
+          variant='outline'
+          className='h-10 rounded-full border-black/30 bg-transparent px-5 text-[11px] font-bold tracking-[0.2em] text-black hover:bg-black hover:text-white'
+        >
+          <Link href='/sign-in'>JÁ TENHO CONTA</Link>
+        </Button>
+      </section>
+
+      {/* About statement */}
+      <section
+        id='sobre'
+        className='mx-auto mt-24 w-full max-w-[1400px] px-6 md:mt-40 md:px-14'
+      >
+        <div className='grid grid-cols-1 gap-8 md:grid-cols-12'>
+          <div className='md:col-span-2'>
+            <span className='text-[11px] tracking-widest text-[#ff751f]'>
+              [SOBRE]
+            </span>
+          </div>
+
+          <div className='md:col-span-10'>
+            <h2
+              className='font-black uppercase leading-[0.95] tracking-[-0.03em]'
+              style={{ fontSize: "clamp(2rem, 6vw, 5rem)" }}
+            >
+              <span className='block'>#SCOUT_DE</span>
+              <span className='block pl-[10%] text-[#ff751f]'>VÔLEI,</span>
+              <span className='block'>FEITO COM</span>
+              <span className='block pl-[20%]'>CLAREZA &amp;</span>
+              <span className='block'>PROPÓSITO</span>
+            </h2>
+          </div>
+        </div>
+
+        <div className='mt-12'>
+          <Slashes className='text-black/60' />
+        </div>
+      </section>
+
+      {/* Big stat block */}
+      <section
+        id='recursos'
+        className='mx-auto mt-24 w-full max-w-[1400px] border-y border-black/10 px-6 py-16 md:mt-32 md:px-14 md:py-24'
+      >
+        <div className='mb-10 flex items-center justify-between'>
+          <p className='max-w-xs text-xs leading-relaxed text-black/55 md:ml-[40%]'>
+            Estruturamos cada partida com ritmo e significado para que sua
+            comissão técnica decida com confiança.
+          </p>
+          <Slashes className='text-black/60' />
+        </div>
+
+        <div
+          className='select-none text-center font-black leading-none tracking-[-0.05em] text-[#ff751f]'
+          style={{ fontSize: "clamp(7rem, 28vw, 24rem)" }}
+        >
+          100%
+        </div>
+
+        <div className='mt-10 flex flex-wrap items-end justify-between gap-6'>
+          <p className='max-w-xs text-xs leading-relaxed text-black/55'>
+            Menos ruído, mais clareza.
+            <br />
+            Dados que sustentam a decisão dentro de quadra.
+          </p>
+          <div className='flex flex-wrap gap-6 text-[11px] tracking-widest text-black/55'>
+            <span>[QUADRA]</span>
+            <span>[BANCO]</span>
+            <span>[COMISSÃO]</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Dark services */}
+      <section
+        id='contato'
+        className='mt-24 bg-black px-6 py-20 text-white md:mt-32 md:px-14 md:py-32'
+      >
+        <div className='mx-auto w-full max-w-[1400px]'>
+          <div className='mb-16 flex items-center justify-between'>
+            <Link
+              href='/sign-up'
+              className='group inline-flex h-10 items-center rounded-full border border-white/30 bg-transparent px-5 text-[11px] font-bold tracking-[0.2em] text-white transition-colors hover:bg-white hover:text-black'
+            >
+              COMEÇAR PROJETO
+            </Link>
+            <span className='text-sm font-black tracking-tighter text-white'>
+              R<span className='text-[#ff751f]'>.</span>
+            </span>
+            <Link
+              href='/sign-in'
+              className='group inline-flex h-10 items-center rounded-full border border-white/30 bg-transparent px-5 text-[11px] font-bold tracking-[0.2em] text-white transition-colors hover:bg-white hover:text-black'
+            >
+              ENTRAR
+            </Link>
+          </div>
+
+          <div className='grid grid-cols-1 gap-12 md:grid-cols-4 md:gap-8'>
+            {services.map((s) => (
+              <div key={s.title}>
+                <Slashes className='text-white' />
+                <div className='mt-4 text-[11px] tracking-widest text-white/40'>
+                  {s.label}
+                </div>
+                <h3 className='mt-3 text-3xl font-black uppercase leading-none tracking-tight md:text-4xl'>
+                  {s.title}
+                </h3>
+                <p className='mt-5 max-w-[26ch] text-xs leading-relaxed text-white/50'>
+                  {s.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className='mt-24 flex flex-col items-start justify-between gap-6 border-t border-white/10 pt-8 text-[11px] tracking-widest text-white/40 md:flex-row md:items-center'>
+            <span>© {new Date().getFullYear()} RALLY SCOUT</span>
+            <span>[TODOS_OS_DIREITOS_RESERVADOS]</span>
+            <span>BR / 2026</span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

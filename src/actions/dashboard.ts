@@ -66,6 +66,29 @@ export async function getDashboardData() {
     orderBy: { date: "desc" },
   });
 
+  // Próxima partida (agendada/ao vivo)
+  const upcomingMatch = await prisma.match.findFirst({
+    where: {
+      team: { userId: user.id },
+      status: { in: ["SCHEDULED", "LIVE"] },
+    },
+    include: { team: true },
+    orderBy: { date: "asc" },
+  });
+
+  // Partidas recentes (últimas 5 finalizadas)
+  const recentMatches = await prisma.match.findMany({
+    where: {
+      team: { userId: user.id },
+      status: "FINISHED",
+    },
+    include: {
+      team: { select: { id: true, name: true, logoUrl: true } },
+    },
+    orderBy: { date: "desc" },
+    take: 5,
+  });
+
   // Top jogadores por eficiência (partidas finalizadas)
   const RESULT_WEIGHTS: Record<string, number> = {
     ERROR: 0, NEGATIVE: 25, NEUTRAL: 50, POSITIVE: 75, POINT: 100,
@@ -120,6 +143,8 @@ export async function getDashboardData() {
       winRate,
     },
     lastMatch,
+    upcomingMatch,
+    recentMatches,
     topPerformers,
   };
 }

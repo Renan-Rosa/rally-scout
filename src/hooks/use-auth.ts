@@ -22,12 +22,6 @@ export function useAuth() {
 
   const handleSignUp = async (data: SignUpInput) => {
     const result = await signUp(data);
-    if (result.success) {
-      startTransition(() => {
-        router.push("/dashboard");
-        router.refresh();
-      });
-    }
     return result;
   };
 

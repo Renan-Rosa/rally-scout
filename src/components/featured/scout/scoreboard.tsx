@@ -69,8 +69,8 @@ export function Scoreboard({
     <>
       <div className='rounded-xl border bg-card shadow-sm overflow-hidden'>
         {/* Set tabs */}
-        <div className='bg-muted/40 px-4 py-2 flex items-center justify-between gap-2'>
-          <div className='flex items-center gap-1.5 flex-wrap'>
+        <div className='bg-muted/40 px-3 sm:px-4 py-2 flex items-center justify-between gap-2'>
+          <div className='flex items-center gap-1 sm:gap-1.5 flex-wrap'>
             {Array.from({ length: 5 }, (_, i) => i + 1).map((set) => {
               const history = setsHistory[set - 1];
               const isCurrent = set === currentSet;
@@ -81,7 +81,7 @@ export function Scoreboard({
                 <span
                   key={set}
                   className={cn(
-                    "text-[11px] font-semibold rounded px-2 py-0.5 tabular-nums border",
+                    "text-[10px] sm:text-[11px] font-semibold rounded px-1.5 sm:px-2 py-0.5 tabular-nums border",
                     isCurrent &&
                       "bg-primary text-primary-foreground border-transparent",
                     isPast &&
@@ -112,25 +112,25 @@ export function Scoreboard({
         </div>
 
         {/* Score */}
-        <div className='px-6 py-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
-          <div className='text-center'>
-            <p className='text-xs text-muted-foreground truncate mb-1 font-medium'>
+        <div className='px-4 sm:px-6 py-3 sm:py-5 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3'>
+          <div className='text-center min-w-0'>
+            <p className='text-[11px] sm:text-xs text-muted-foreground truncate mb-1 font-medium'>
               {teamName}
             </p>
-            <p className='text-7xl font-black tabular-nums leading-none tracking-tight'>
+            <p className='text-5xl sm:text-6xl md:text-7xl font-black tabular-nums leading-none tracking-tight'>
               {scoreHome}
             </p>
           </div>
 
           <div className='text-center'>
-            <p className='text-2xl font-bold text-muted-foreground/50'>×</p>
+            <p className='text-xl sm:text-2xl font-bold text-muted-foreground/50'>×</p>
           </div>
 
-          <div className='text-center'>
-            <p className='text-xs text-muted-foreground truncate mb-1 font-medium'>
+          <div className='text-center min-w-0'>
+            <p className='text-[11px] sm:text-xs text-muted-foreground truncate mb-1 font-medium'>
               {opponent}
             </p>
-            <p className='text-7xl font-black tabular-nums leading-none tracking-tight text-muted-foreground'>
+            <p className='text-5xl sm:text-6xl md:text-7xl font-black tabular-nums leading-none tracking-tight text-muted-foreground'>
               {scoreAway}
             </p>
           </div>
@@ -139,7 +139,7 @@ export function Scoreboard({
         <Separator />
 
         {/* Controls */}
-        <div className='px-4 py-3 flex items-center gap-2'>
+        <div className='px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-1 sm:gap-2'>
           <Button
             variant='ghost'
             size='sm'

@@ -14,15 +14,27 @@ datasource db {
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String     @id @default(cuid())
+  email     String     @unique
   name      String
-  password  String   // hash com bcrypt
+  password  String     // hash com bcrypt
+  status    UserStatus @default(BLOCKED)
 
   teams     Team[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([status])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATUS DO USUÁRIO
+// Novos cadastros entram como BLOCKED — liberação manual via banco
+// ═══════════════════════════════════════════════════════════════════════════════
+enum UserStatus {
+  ACTIVE
+  BLOCKED
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════════╗

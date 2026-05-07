@@ -1,12 +1,12 @@
 "use client";
 
-import { columns, type PlayerRow } from "./columns";
-import { PlayersDataTable } from "./players-data-table";
+import type { PlayerRow } from "./columns";
+import { PlayersView } from "./players-view";
 
 interface PlayersTableProps {
   players: PlayerRow[];
 }
 
 export function PlayersTable({ players }: PlayersTableProps) {
-  return <PlayersDataTable columns={columns} data={players} />;
+  return <PlayersView players={players} />;
 }

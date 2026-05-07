@@ -3,6 +3,7 @@
 import {
   ArrowRightLeft,
   CloudOff,
+  ListOrdered,
   Loader2,
   RotateCcw,
   ShieldAlert,
@@ -12,6 +13,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { syncMatch } from "@/actions/scout";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import type { ActionResult, ActionType } from "@/generated/prisma/enums";
 import {
   buildSyncPayload,
@@ -156,6 +163,7 @@ export function VolleyballCourt({
   const [opponentErrorPending, setOpponentErrorPending] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(true);
+  const [timelineOpen, setTimelineOpen] = useState(false);
 
   useEffect(() => {
     if (typeof navigator === "undefined") return;
@@ -364,7 +372,7 @@ export function VolleyballCourt({
 
       {mode === "live" ? (
         <div className='flex-1 min-h-0 flex gap-3 items-stretch'>
-          <div className='w-44 shrink-0'>
+          <div className='hidden md:block w-44 shrink-0'>
             <ActionTimeline
               actions={localActions}
               currentSet={currentSet}
@@ -373,7 +381,7 @@ export function VolleyballCourt({
             />
           </div>
 
-          <div className='flex-1 min-w-0 flex flex-col gap-3'>
+          <div className='flex-1 min-w-0 flex flex-col gap-2 sm:gap-3'>
             <div className='shrink-0'>
               <Scoreboard
                 teamName={teamName}
@@ -389,11 +397,11 @@ export function VolleyballCourt({
               />
             </div>
 
-            <div className='shrink-0 flex gap-2'>
+            <div className='shrink-0 grid grid-cols-2 gap-1.5 sm:flex sm:gap-2'>
               <Button
                 variant='outline'
                 size='sm'
-                className='flex-1 h-8 text-xs gap-1.5'
+                className='h-8 text-[11px] sm:text-xs gap-1 sm:gap-1.5 sm:flex-1'
                 onClick={() => setSubstitutionOpen(true)}
                 disabled={courtPlayers.length === 0}
               >
@@ -403,7 +411,7 @@ export function VolleyballCourt({
               <Button
                 variant='outline'
                 size='sm'
-                className='flex-1 h-8 text-xs gap-1.5'
+                className='h-8 text-[11px] sm:text-xs gap-1 sm:gap-1.5 sm:flex-1'
                 onClick={handleRotate}
                 disabled={courtPlayers.length === 0}
               >
@@ -413,7 +421,7 @@ export function VolleyballCourt({
               <Button
                 variant='outline'
                 size='sm'
-                className='flex-1 h-8 text-xs gap-1.5 text-green-600 hover:text-green-700 hover:bg-green-500/10 border-green-500/40'
+                className='h-8 text-[11px] sm:text-xs gap-1 sm:gap-1.5 sm:flex-1 text-green-600 hover:text-green-700 hover:bg-green-500/10 border-green-500/40'
                 onClick={handleOpponentError}
                 disabled={opponentErrorPending}
               >
@@ -422,7 +430,16 @@ export function VolleyballCourt({
                 ) : (
                   <ShieldAlert className='size-3.5' />
                 )}
-                Erro Adversário
+                Erro Adv.
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                className='h-8 text-[11px] gap-1 md:hidden'
+                onClick={() => setTimelineOpen(true)}
+              >
+                <ListOrdered className='size-3.5' />
+                Histórico
               </Button>
             </div>
 
@@ -512,6 +529,25 @@ export function VolleyballCourt({
         onSave={handleSaveAction}
         onClose={() => setActivePlayerSlot(null)}
       />
+
+      <Sheet open={timelineOpen} onOpenChange={setTimelineOpen}>
+        <SheetContent
+          side='right'
+          className='flex w-full flex-col gap-0 p-0 sm:max-w-sm md:hidden'
+        >
+          <SheetHeader className='border-b px-4 py-3'>
+            <SheetTitle className='text-sm'>Histórico de ações</SheetTitle>
+          </SheetHeader>
+          <div className='min-h-0 flex-1 p-3'>
+            <ActionTimeline
+              actions={localActions}
+              currentSet={currentSet}
+              viewingSet={viewingSet}
+              onViewSet={setViewingSet}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

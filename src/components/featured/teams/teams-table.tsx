@@ -1,12 +1,12 @@
 "use client";
 
-import { type TeamRow, columns } from "./columns";
-import { TeamsDataTable } from "./teams-data-table";
+import type { TeamRow } from "./columns";
+import { TeamsView } from "./teams-view";
 
 interface TeamsTableProps {
   teams: TeamRow[];
 }
 
 export function TeamsTable({ teams }: TeamsTableProps) {
-  return <TeamsDataTable columns={columns} data={teams} />;
+  return <TeamsView teams={teams} />;
 }

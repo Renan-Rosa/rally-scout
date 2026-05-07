@@ -24,6 +24,7 @@ export function SignUpForm({
 }: React.ComponentProps<"div">) {
   const { signUp, isPending } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const form = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
@@ -37,10 +38,31 @@ export function SignUpForm({
   const onSubmit = async (data: SignUpInput) => {
     setError(null);
     const result = await signUp(data);
-    if (!result.success) {
+    if (result.success) {
+      setSubmitted(true);
+    } else {
       setError(result.error ?? "Erro ao criar conta");
     }
   };
+
+  if (submitted) {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <div className='flex flex-col items-center gap-2 text-center'>
+          <h1 className='text-xl font-bold'>Conta criada!</h1>
+          <FieldDescription>
+            Sua conta foi criada e está aguardando liberação do administrador.
+            Você receberá acesso assim que ela for ativada.
+          </FieldDescription>
+        </div>
+        <Link href='/sign-in'>
+          <Button variant='outline' className='w-full'>
+            Voltar para o login
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

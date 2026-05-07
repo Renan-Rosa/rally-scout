@@ -1,5 +1,14 @@
-import { TrendingDown, TrendingUp } from "lucide-react";
+import {
+  Activity,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+  Users,
+  UsersRound,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type StatsCardsProps = {
   stats: {
@@ -12,77 +21,104 @@ type StatsCardsProps = {
   };
 };
 
+type StatCard = {
+  label: string;
+  value: string | number;
+  description: string;
+  icon: LucideIcon;
+  iconClass: string;
+  trend?: { value: number; positive: boolean };
+};
+
 export function StatsCards({ stats }: StatsCardsProps) {
+  const totalGames = stats.wins + stats.losses;
   const isPositiveRate = stats.winRate >= 50;
 
-  const cards = [
+  const cards: StatCard[] = [
     {
       label: "Times",
       value: stats.teams,
-      trend: null,
       description: "Times cadastrados",
+      icon: UsersRound,
+      iconClass: "text-blue-500 bg-blue-500/10",
     },
     {
-      label: "Jogadores",
+      label: "Atletas",
       value: stats.players,
-      trend: null,
-      description: "Jogadores ativos",
+      description: "Atletas ativos",
+      icon: Users,
+      iconClass: "text-purple-500 bg-purple-500/10",
     },
     {
       label: "Partidas",
       value: stats.matches,
-      trend: null,
-      description: "Total de partidas",
+      description: `${totalGames} finalizadas`,
+      icon: Activity,
+      iconClass: "text-orange-500 bg-orange-500/10",
     },
     {
-      label: "Vitórias/Derrotas",
-      value: `${stats.wins}/${stats.losses}`,
+      label: "Aproveitamento",
+      value: totalGames > 0 ? `${stats.winRate}%` : "—",
+      description:
+        totalGames > 0
+          ? `${stats.wins}V · ${stats.losses}D`
+          : "Sem partidas finalizadas",
+      icon: Trophy,
+      iconClass: isPositiveRate
+        ? "text-green-500 bg-green-500/10"
+        : "text-red-500 bg-red-500/10",
       trend:
-        stats.wins + stats.losses > 0
+        totalGames > 0
           ? { value: stats.winRate, positive: isPositiveRate }
-          : null,
-      description: isPositiveRate ? "Bom aproveitamento" : "Precisa melhorar",
+          : undefined,
     },
   ];
 
   return (
     <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-      {cards.map((card) => (
-        <Card key={card.label}>
-          <CardContent className='p-4'>
-            {/* Header */}
-            <div className='flex items-center justify-between'>
-              <p className='text-sm text-muted-foreground'>{card.label}</p>
-              {card.trend && (
-                <div
-                  className={`flex items-center gap-1 rounded-full border px-2 py-0.5 ${
-                    card.trend.positive
-                      ? "border-green-500/20 bg-green-500/10 text-green-500"
-                      : "border-red-500/20 bg-red-500/10 text-red-500"
-                  }`}
-                >
-                  {card.trend.positive ? (
-                    <TrendingUp className='size-3' />
-                  ) : (
-                    <TrendingDown className='size-3' />
-                  )}
-                  <span className='text-xs font-medium'>
-                    {card.trend.value}%
-                  </span>
+      {cards.map((card) => {
+        const Icon = card.icon;
+        return (
+          <Card
+            key={card.label}
+            className='relative gap-0 overflow-hidden py-0 transition-colors hover:border-foreground/20'
+          >
+            <CardContent className='p-5'>
+              <div className='flex items-start justify-between'>
+                <div className={cn("rounded-lg p-2", card.iconClass)}>
+                  <Icon className='size-4' />
                 </div>
-              )}
-            </div>
-
-            {/* Value */}
-            <p className='mt-2 text-3xl font-bold'>{card.value}</p>
-
-            {/* Footer */}
-            <p className='mt-2 text-sm text-muted-foreground'>
-              {card.description}
-            </p>
-          </CardContent>
-        </Card>
-      ))}
+                {card.trend && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+                      card.trend.positive
+                        ? "bg-green-500/10 text-green-500"
+                        : "bg-red-500/10 text-red-500",
+                    )}
+                  >
+                    {card.trend.positive ? (
+                      <TrendingUp className='size-3' />
+                    ) : (
+                      <TrendingDown className='size-3' />
+                    )}
+                    {card.trend.value}%
+                  </div>
+                )}
+              </div>
+              <div className='mt-4'>
+                <p className='text-3xl font-bold tracking-tight tabular-nums'>
+                  {card.value}
+                </p>
+                <p className='mt-1 text-sm font-medium'>{card.label}</p>
+                <p className='text-xs text-muted-foreground'>
+                  {card.description}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

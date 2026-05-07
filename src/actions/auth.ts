@@ -44,6 +44,13 @@ export async function signIn(input: SignInInput): Promise<ActionResponse> {
     return { success: false, error: "Credenciais inválidas" };
   }
 
+  if (user.status !== "ACTIVE") {
+    return {
+      success: false,
+      error: "Conta aguardando liberação. Entre em contato com o administrador.",
+    };
+  }
+
   // Gera token e seta cookie
   const token = await signToken({ userId: user.id, email: user.email });
   await setAuthCookie(token);
@@ -75,18 +82,14 @@ export async function signUp(input: SignUpInput): Promise<ActionResponse> {
   // Hash da senha
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  // Cria user
-  const user = await prisma.user.create({
+  // Cria user (status BLOCKED por padrão — liberação manual via banco)
+  await prisma.user.create({
     data: {
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
     },
   });
-
-  // Gera token e seta cookie (já loga após cadastro)
-  const token = await signToken({ userId: user.id, email: user.email });
-  await setAuthCookie(token);
 
   return { success: true };
 }

@@ -67,9 +67,12 @@ export async function getCurrentUser() {
       id: true,
       email: true,
       name: true,
+      status: true,
       createdAt: true,
     },
   });
+
+  if (!user || user.status !== "ACTIVE") return null;
 
   return user;
 }
