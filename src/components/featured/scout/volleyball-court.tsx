@@ -468,30 +468,33 @@ export function VolleyballCourt({
           </div>
         </div>
       ) : (
-        <div className='flex flex-col gap-4'>
-          <div className='relative w-full rounded-lg overflow-hidden border-2 border-white/60 bg-transparent shadow-lg'>
-            <div className='relative' style={{ paddingTop: "62.5%" }}>
-              <div className='absolute inset-0 flex'>
-                <div
-                  className='relative flex items-center justify-center border-r border-white/50'
-                  style={{ width: "15%" }}
-                >
-                  <span className='text-white/30 text-[10px] font-semibold tracking-widest uppercase [writing-mode:vertical-rl] rotate-180'>
-                    Rede
-                  </span>
-                </div>
+        <div className='flex-1 min-h-0 flex flex-col gap-4'>
+          <div className='flex-1 min-h-0 flex items-center justify-center'>
+            <div
+              className='relative flex h-full max-h-full max-w-full rounded-lg overflow-hidden border-2 border-white/60 bg-transparent shadow-lg'
+              style={{ aspectRatio: "8 / 5" }}
+            >
+              <div
+                className='relative flex items-center justify-center border-r border-white/50 shrink-0'
+                style={{ width: "15%" }}
+              >
+                <span className='text-white/30 text-[10px] font-semibold tracking-widest uppercase [writing-mode:vertical-rl] rotate-180'>
+                  Rede
+                </span>
+              </div>
+              <div className='relative flex-1 h-full'>
                 <div
                   className='absolute top-0 bottom-0 border-r border-white/30 border-dashed'
-                  style={{ left: "43%" }}
+                  style={{ left: "33%" }}
                 />
-                <div className='flex-1 grid grid-cols-2 grid-rows-3 p-4 gap-3'>
-                  {slotGrid(false)}
+                <div className='h-full grid grid-cols-2 grid-rows-3 p-3 gap-2'>
+                  {slotGrid(true)}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className='flex flex-col items-center gap-2'>
+          <div className='shrink-0 flex flex-col items-center gap-2'>
             {setupError && (
               <p className='text-sm text-destructive'>{setupError}</p>
             )}

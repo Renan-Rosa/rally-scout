@@ -3,6 +3,8 @@ import { getLiveMatch } from "@/actions/matches";
 import { Header } from "@/components/shared/header";
 import { getCurrentUser } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {
